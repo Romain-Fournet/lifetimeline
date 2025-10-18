@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./useAuth";
 import { useSubscription } from "./useSubscription";
-import type { Category, CreateCategoryInput, UpdateCategoryInput } from "../types/category";
+import type {
+  Category,
+  CreateCategoryInput,
+  UpdateCategoryInput,
+} from "../types/category";
 
 export function useCategories() {
   const { user } = useAuth();
@@ -37,7 +41,9 @@ export function useCategories() {
         setCategories(data || []);
       } catch (err) {
         console.error("Error fetching categories:", err);
-        setError(err instanceof Error ? err.message : "Error fetching categories");
+        setError(
+          err instanceof Error ? err.message : "Error fetching categories"
+        );
       } finally {
         setLoading(false);
       }
@@ -54,7 +60,8 @@ export function useCategories() {
 
     // Vérifier la limite d'abonnement
     if (!canCreateCategory(categories.length)) {
-      const errorMessage = "Limite de catégories atteinte. Passez à Premium pour créer plus de catégories.";
+      const errorMessage =
+        "Limite de catégories atteinte. Passez à Premium pour créer plus de catégories.";
       setError(errorMessage);
       return { data: null, error: errorMessage };
     }
@@ -63,9 +70,10 @@ export function useCategories() {
       setError(null);
 
       // Déterminer le prochain display_order
-      const maxOrder = categories.length > 0
-        ? Math.max(...categories.map(cat => cat.display_order))
-        : -1;
+      const maxOrder =
+        categories.length > 0
+          ? Math.max(...categories.map((cat) => cat.display_order))
+          : -1;
       const nextOrder = categoryData.display_order ?? maxOrder + 1;
 
       const { data, error: createError } = await supabase
@@ -87,7 +95,9 @@ export function useCategories() {
       }
 
       // Ajouter la nouvelle catégorie à la liste
-      setCategories((prev) => [...prev, data].sort((a, b) => a.display_order - b.display_order));
+      setCategories((prev) =>
+        [...prev, data].sort((a, b) => a.display_order - b.display_order)
+      );
       return { data, error: null };
     } catch (err) {
       const errorMessage =
@@ -99,7 +109,10 @@ export function useCategories() {
   };
 
   // Mettre à jour une catégorie
-  const updateCategory = async (categoryId: string, updates: UpdateCategoryInput) => {
+  const updateCategory = async (
+    categoryId: string,
+    updates: UpdateCategoryInput
+  ) => {
     if (!user?.id) {
       throw new Error("No user logged in");
     }
@@ -121,7 +134,9 @@ export function useCategories() {
 
       // Mettre à jour la catégorie dans la liste
       setCategories((prev) =>
-        prev.map((cat) => (cat.id === categoryId ? data : cat)).sort((a, b) => a.display_order - b.display_order)
+        prev
+          .map((cat) => (cat.id === categoryId ? data : cat))
+          .sort((a, b) => a.display_order - b.display_order)
       );
       return { data, error: null };
     } catch (err) {
@@ -150,12 +165,19 @@ export function useCategories() {
         .eq("category_id", categoryId);
 
       if (countError) {
+        console.error("Error counting events for category:", countError);
         throw countError;
       }
 
       // Empêcher la suppression si des événements sont associés
       if (eventsCount && eventsCount > 0) {
-        const errorMessage = `Impossible de supprimer cette catégorie. ${eventsCount} événement${eventsCount > 1 ? 's sont' : ' est'} associé${eventsCount > 1 ? 's' : ''} à cette catégorie. Veuillez d'abord supprimer ou réassigner ${eventsCount > 1 ? 'ces événements' : 'cet événement'}.`;
+        const errorMessage = `Impossible de supprimer cette catégorie. ${eventsCount} événement${
+          eventsCount > 1 ? "s sont" : " est"
+        } associé${
+          eventsCount > 1 ? "s" : ""
+        } à cette catégorie. Veuillez d'abord supprimer ou réassigner ${
+          eventsCount > 1 ? "ces événements" : "cet événement"
+        }.`;
         setError(errorMessage);
         return { error: errorMessage };
       }

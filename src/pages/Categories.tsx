@@ -21,7 +21,14 @@ const AVAILABLE_COLORS = [
 
 export const Categories = () => {
   const navigate = useNavigate();
-  const { categories, loading, error: categoryError, createCategory, updateCategory, deleteCategory } = useCategories();
+  const {
+    categories,
+    loading,
+    error: categoryError,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  } = useCategories();
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -43,7 +50,8 @@ export const Categories = () => {
     e.preventDefault();
 
     // Générer le slug depuis le nom si pas fourni
-    const slug = newCategory.slug || newCategory.name.toLowerCase().replace(/\s+/g, '_');
+    const slug =
+      newCategory.slug || newCategory.name.toLowerCase().replace(/\s+/g, "_");
 
     const { error } = await createCategory({
       ...newCategory,
@@ -72,11 +80,9 @@ export const Categories = () => {
   };
 
   const handleDelete = async (categoryId: string) => {
-    const { error } = await deleteCategory(categoryId);
+    await deleteCategory(categoryId);
 
-    if (!error) {
-      setDeletingId(null);
-    }
+    setDeletingId(null);
   };
 
   const startEdit = (category: Category) => {
@@ -125,7 +131,10 @@ export const Categories = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Banner d'abonnement */}
         <div className="mb-6">
-          <SubscriptionBanner currentCount={categories.length} limitType="categories" />
+          <SubscriptionBanner
+            currentCount={categories.length}
+            limitType="categories"
+          />
         </div>
 
         {/* Message d'erreur */}
@@ -150,7 +159,9 @@ export const Categories = () => {
                   <input
                     type="text"
                     value={newCategory.name}
-                    onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewCategory({ ...newCategory, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Ex: Loisirs"
                     required
@@ -163,7 +174,9 @@ export const Categories = () => {
                   <input
                     type="text"
                     value={newCategory.slug}
-                    onChange={(e) => setNewCategory({ ...newCategory, slug: e.target.value })}
+                    onChange={(e) =>
+                      setNewCategory({ ...newCategory, slug: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Ex: loisirs (auto-généré si vide)"
                   />
@@ -179,7 +192,9 @@ export const Categories = () => {
                     <button
                       key={color.value}
                       type="button"
-                      onClick={() => setNewCategory({ ...newCategory, color: color.value })}
+                      onClick={() =>
+                        setNewCategory({ ...newCategory, color: color.value })
+                      }
                       className={`w-12 h-12 rounded-lg ${color.value} ${
                         newCategory.color === color.value
                           ? "ring-2 ring-offset-2 ring-gray-900"
@@ -198,7 +213,9 @@ export const Categories = () => {
                 <input
                   type="text"
                   value={newCategory.icon}
-                  onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                  onChange={(e) =>
+                    setNewCategory({ ...newCategory, icon: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Music"
                 />
@@ -210,7 +227,12 @@ export const Categories = () => {
                 </label>
                 <textarea
                   value={newCategory.description}
-                  onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewCategory({
+                      ...newCategory,
+                      description: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="Description de la catégorie..."
@@ -249,7 +271,10 @@ export const Categories = () => {
           ) : (
             <div className="divide-y divide-gray-200">
               {categories.map((category) => (
-                <div key={category.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div
+                  key={category.id}
+                  className="p-6 hover:bg-gray-50 transition-colors"
+                >
                   {editingId === category.id ? (
                     // Mode édition
                     <div className="space-y-4">
@@ -257,14 +282,18 @@ export const Categories = () => {
                         <input
                           type="text"
                           value={editForm.name || ""}
-                          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, name: e.target.value })
+                          }
                           className="px-4 py-2 border border-gray-300 rounded-lg"
                           placeholder="Nom"
                         />
                         <input
                           type="text"
                           value={editForm.slug || ""}
-                          onChange={(e) => setEditForm({ ...editForm, slug: e.target.value })}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, slug: e.target.value })
+                          }
                           className="px-4 py-2 border border-gray-300 rounded-lg"
                           placeholder="Slug"
                         />
@@ -274,7 +303,9 @@ export const Categories = () => {
                           <button
                             key={color.value}
                             type="button"
-                            onClick={() => setEditForm({ ...editForm, color: color.value })}
+                            onClick={() =>
+                              setEditForm({ ...editForm, color: color.value })
+                            }
                             className={`w-10 h-10 rounded-lg ${color.value} ${
                               editForm.color === color.value
                                 ? "ring-2 ring-offset-2 ring-gray-900"
@@ -303,12 +334,20 @@ export const Categories = () => {
                     // Mode affichage
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className={`w-12 h-12 ${category.color} rounded-lg`} />
+                        <div
+                          className={`w-12 h-12 ${category.color} rounded-lg`}
+                        />
                         <div>
-                          <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                          <p className="text-sm text-gray-500">Slug: {category.slug}</p>
+                          <h3 className="font-semibold text-gray-900">
+                            {category.name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            Slug: {category.slug}
+                          </p>
                           {category.description && (
-                            <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {category.description}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -339,13 +378,14 @@ export const Categories = () => {
 
       {/* Dialog de confirmation de suppression */}
       {deletingId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Supprimer cette catégorie ?
             </h3>
             <p className="text-gray-600 mb-6">
-              Les événements associés ne seront pas supprimés, mais n'auront plus de catégorie.
+              Les événements associés ne seront pas supprimés, mais n'auront
+              plus de catégorie.
             </p>
             <div className="flex items-center space-x-3">
               <button
