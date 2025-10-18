@@ -128,7 +128,7 @@ export function useSubscription() {
         tier: "premium",
         limits: SUBSCRIPTION_PLANS.premium,
         activatedAt: new Date().toISOString(),
-        expiresAt: null,
+        expiresAt: undefined,
       });
 
       return { success: true, error: null };
@@ -174,13 +174,19 @@ export function useSubscription() {
       // Vérifier si l'utilisateur dépasse les limites
       if ((categoriesCount || 0) > freeLimits.maxCategories) {
         throw new Error(
-          `Vous avez ${categoriesCount} catégories. Vous devez en supprimer ${(categoriesCount || 0) - freeLimits.maxCategories} avant de passer au plan gratuit (limite: ${freeLimits.maxCategories}).`
+          `Vous avez ${categoriesCount} catégories. Vous devez en supprimer ${
+            (categoriesCount || 0) - freeLimits.maxCategories
+          } avant de passer au plan gratuit (limite: ${
+            freeLimits.maxCategories
+          }).`
         );
       }
 
       if ((eventsCount || 0) > freeLimits.maxEvents) {
         throw new Error(
-          `Vous avez ${eventsCount} événements. Vous devez en supprimer ${(eventsCount || 0) - freeLimits.maxEvents} avant de passer au plan gratuit (limite: ${freeLimits.maxEvents}).`
+          `Vous avez ${eventsCount} événements. Vous devez en supprimer ${
+            (eventsCount || 0) - freeLimits.maxEvents
+          } avant de passer au plan gratuit (limite: ${freeLimits.maxEvents}).`
         );
       }
 
