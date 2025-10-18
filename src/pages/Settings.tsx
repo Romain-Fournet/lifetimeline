@@ -14,6 +14,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useProfile } from "../hooks/useProfile";
 import { supabase } from "../lib/supabase";
+import { SubscriptionCard } from "../components/ui/SubscriptionCard";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -178,6 +179,11 @@ const Settings = () => {
             {errorMessage}
           </div>
         )}
+
+        {/* Subscription Section */}
+        <div className="mb-6">
+          <SubscriptionCard />
+        </div>
 
         {/* Categories Section */}
         <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">

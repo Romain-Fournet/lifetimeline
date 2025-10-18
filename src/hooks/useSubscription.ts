@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./useAuth";
-import type { Subscription, SubscriptionTier, UpgradeCodeInput } from "../types/subscription";
+import type {
+  Subscription,
+  SubscriptionTier,
+  UpgradeCodeInput,
+} from "../types/subscription";
 import { SUBSCRIPTION_PLANS } from "../types/subscription";
 
 // Codes d'accès simulés (à remplacer par une vraie vérification backend en production)
-const VALID_UPGRADE_CODES = [
-  "PREMIUM2024",
-  "LIFETIMELINE-PRO",
-  "UPGRADE-NOW",
-];
+const VALID_UPGRADE_CODES = ["PREMIUM2025", "LIFETIMELINE-PRO", "UPGRADE-NOW"];
 
 export function useSubscription() {
   const { user } = useAuth();
@@ -32,7 +32,9 @@ export function useSubscription() {
 
         const { data: profile, error: fetchError } = await supabase
           .from("users")
-          .select("subscription_tier, subscription_activated_at, subscription_expires_at")
+          .select(
+            "subscription_tier, subscription_activated_at, subscription_expires_at"
+          )
           .eq("id", user.id)
           .single();
 
@@ -40,7 +42,7 @@ export function useSubscription() {
           throw fetchError;
         }
 
-        const tier = (profile.subscription_tier || 'free') as SubscriptionTier;
+        const tier = (profile.subscription_tier || "free") as SubscriptionTier;
         const limits = SUBSCRIPTION_PLANS[tier];
 
         setSubscription({
@@ -51,11 +53,13 @@ export function useSubscription() {
         });
       } catch (err) {
         console.error("Error fetching subscription:", err);
-        setError(err instanceof Error ? err.message : "Error fetching subscription");
+        setError(
+          err instanceof Error ? err.message : "Error fetching subscription"
+        );
 
         // Fallback sur free en cas d'erreur
         setSubscription({
-          tier: 'free',
+          tier: "free",
           limits: SUBSCRIPTION_PLANS.free,
         });
       } finally {
@@ -79,11 +83,15 @@ export function useSubscription() {
   };
 
   // Vérifier si l'utilisateur a atteint la limite
-  const isAtLimit = (currentCount: number, limitType: 'categories' | 'events'): boolean => {
+  const isAtLimit = (
+    currentCount: number,
+    limitType: "categories" | "events"
+  ): boolean => {
     if (!subscription) return true;
-    const limit = limitType === 'categories'
-      ? subscription.limits.maxCategories
-      : subscription.limits.maxEvents;
+    const limit =
+      limitType === "categories"
+        ? subscription.limits.maxCategories
+        : subscription.limits.maxEvents;
     return currentCount >= limit;
   };
 
@@ -105,7 +113,7 @@ export function useSubscription() {
       const { error: updateError } = await supabase
         .from("users")
         .update({
-          subscription_tier: 'premium',
+          subscription_tier: "premium",
           subscription_activated_at: new Date().toISOString(),
           subscription_expires_at: null, // Accès à vie pour l'instant
         })
@@ -117,7 +125,7 @@ export function useSubscription() {
 
       // Mettre à jour l'état local
       setSubscription({
-        tier: 'premium',
+        tier: "premium",
         limits: SUBSCRIPTION_PLANS.premium,
         activatedAt: new Date().toISOString(),
         expiresAt: null,
@@ -132,6 +140,46 @@ export function useSubscription() {
     }
   };
 
+  // Downgrader vers le plan gratuit
+  const downgradeToFree = async () => {
+    if (!user) {
+      throw new Error("No user logged in");
+    }
+
+    try {
+      setError(null);
+
+      // Mettre à jour l'abonnement
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          subscription_tier: "free",
+          subscription_activated_at: null,
+          subscription_expires_at: null,
+        })
+        .eq("id", user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Mettre à jour l'état local
+      setSubscription({
+        tier: "free",
+        limits: SUBSCRIPTION_PLANS.free,
+        activatedAt: undefined,
+        expiresAt: undefined,
+      });
+
+      return { success: true, error: null };
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erreur lors du downgrade";
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   return {
     subscription,
     loading,
@@ -140,7 +188,8 @@ export function useSubscription() {
     canCreateEvent,
     isAtLimit,
     upgradeToPremium,
-    isPremium: subscription?.tier === 'premium',
-    isFree: subscription?.tier === 'free',
+    downgradeToFree,
+    isPremium: subscription?.tier === "premium",
+    isFree: subscription?.tier === "free",
   };
 }
