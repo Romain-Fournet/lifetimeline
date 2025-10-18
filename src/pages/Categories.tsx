@@ -21,7 +21,7 @@ const AVAILABLE_COLORS = [
 
 export const Categories = () => {
   const navigate = useNavigate();
-  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { categories, loading, error: categoryError, createCategory, updateCategory, deleteCategory } = useCategories();
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -127,6 +127,13 @@ export const Categories = () => {
         <div className="mb-6">
           <SubscriptionBanner currentCount={categories.length} limitType="categories" />
         </div>
+
+        {/* Message d'erreur */}
+        {categoryError && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            {categoryError}
+          </div>
+        )}
 
         {/* Formulaire de création */}
         {isCreating && (

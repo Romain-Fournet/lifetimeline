@@ -142,6 +142,24 @@ export function useCategories() {
     try {
       setError(null);
 
+      // Vérifier s'il y a des événements associés à cette catégorie
+      const { count: eventsCount, error: countError } = await supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("category_id", categoryId);
+
+      if (countError) {
+        throw countError;
+      }
+
+      // Empêcher la suppression si des événements sont associés
+      if (eventsCount && eventsCount > 0) {
+        const errorMessage = `Impossible de supprimer cette catégorie. ${eventsCount} événement${eventsCount > 1 ? 's sont' : ' est'} associé${eventsCount > 1 ? 's' : ''} à cette catégorie. Veuillez d'abord supprimer ou réassigner ${eventsCount > 1 ? 'ces événements' : 'cet événement'}.`;
+        setError(errorMessage);
+        return { error: errorMessage };
+      }
+
       const { error: deleteError } = await supabase
         .from("categories")
         .delete()
