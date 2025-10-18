@@ -149,6 +149,41 @@ export function useSubscription() {
     try {
       setError(null);
 
+      // Vérifier le nombre de catégories
+      const { count: categoriesCount, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+
+      if (categoriesError) {
+        throw categoriesError;
+      }
+
+      // Vérifier le nombre d'événements
+      const { count: eventsCount, error: eventsError } = await supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+
+      if (eventsError) {
+        throw eventsError;
+      }
+
+      const freeLimits = SUBSCRIPTION_PLANS.free;
+
+      // Vérifier si l'utilisateur dépasse les limites
+      if ((categoriesCount || 0) > freeLimits.maxCategories) {
+        throw new Error(
+          `Vous avez ${categoriesCount} catégories. Vous devez en supprimer ${(categoriesCount || 0) - freeLimits.maxCategories} avant de passer au plan gratuit (limite: ${freeLimits.maxCategories}).`
+        );
+      }
+
+      if ((eventsCount || 0) > freeLimits.maxEvents) {
+        throw new Error(
+          `Vous avez ${eventsCount} événements. Vous devez en supprimer ${(eventsCount || 0) - freeLimits.maxEvents} avant de passer au plan gratuit (limite: ${freeLimits.maxEvents}).`
+        );
+      }
+
       // Mettre à jour l'abonnement
       const { error: updateError } = await supabase
         .from("users")

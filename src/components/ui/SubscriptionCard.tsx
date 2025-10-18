@@ -140,6 +140,12 @@ export function SubscriptionCard() {
               </h3>
             </div>
 
+            {errorMessage && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+                {errorMessage}
+              </div>
+            )}
+
             <p className="text-gray-600 mb-4">
               Vous perdrez l'accès aux fonctionnalités premium :
             </p>
@@ -160,8 +166,15 @@ export function SubscriptionCard() {
             </ul>
 
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-6">
-              <p className="text-sm text-orange-800">
-                <strong>Attention :</strong> Si vous avez déjà plus de catégories ou d'événements que la limite gratuite, vous ne pourrez plus en créer de nouveaux.
+              <p className="text-sm text-orange-800 mb-2">
+                <strong>Vérifications avant downgrade :</strong>
+              </p>
+              <ul className="text-sm text-orange-700 space-y-1 ml-4">
+                <li>• Vous ne devez pas avoir plus de 4 catégories</li>
+                <li>• Vous ne devez pas avoir plus de 10 événements</li>
+              </ul>
+              <p className="text-xs text-orange-700 mt-2">
+                Si vous dépassez ces limites, supprimez d'abord les catégories ou événements en trop.
               </p>
             </div>
 
