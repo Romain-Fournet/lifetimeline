@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Pencil, Trash2, Save, X } from "lucide-react";
 import { useCategories } from "../hooks/useCategories";
+import { SubscriptionBanner } from "../components/ui/SubscriptionBanner";
 import type { Category, CreateCategoryInput } from "../types/category";
 
 // Couleurs disponibles pour les catégories
@@ -122,6 +123,11 @@ export const Categories = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner d'abonnement */}
+        <div className="mb-6">
+          <SubscriptionBanner currentCount={categories.length} limitType="categories" />
+        </div>
+
         {/* Formulaire de création */}
         {isCreating && (
           <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">

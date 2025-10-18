@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./useAuth";
+import { useSubscription } from "./useSubscription";
 import type { Category, CreateCategoryInput, UpdateCategoryInput } from "../types/category";
 
 export function useCategories() {
   const { user } = useAuth();
+  const { canCreateCategory } = useSubscription();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +50,13 @@ export function useCategories() {
   const createCategory = async (categoryData: CreateCategoryInput) => {
     if (!user?.id) {
       throw new Error("No user logged in");
+    }
+
+    // Vérifier la limite d'abonnement
+    if (!canCreateCategory(categories.length)) {
+      const errorMessage = "Limite de catégories atteinte. Passez à Premium pour créer plus de catégories.";
+      setError(errorMessage);
+      return { data: null, error: errorMessage };
     }
 
     try {

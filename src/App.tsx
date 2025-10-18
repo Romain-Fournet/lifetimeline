@@ -9,6 +9,7 @@ import Landing from "./pages/Landing";
 import Timeline from "./pages/Timeline";
 import Categories from "./pages/Categories";
 import Settings from "./pages/Settings";
+import Upgrade from "./pages/Upgrade";
 
 function App() {
   return (
@@ -50,6 +51,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Categories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upgrade"
+            element={
+              <ProtectedRoute>
+                <Upgrade />
               </ProtectedRoute>
             }
           />

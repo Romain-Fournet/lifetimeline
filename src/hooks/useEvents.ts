@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./useAuth";
+import { useSubscription } from "./useSubscription";
 import type { TimelineEvent } from "../pages/Timeline";
 
 export function useEvents() {
   const { user } = useAuth();
+  const { canCreateEvent } = useSubscription();
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +63,13 @@ export function useEvents() {
   const createEvent = async (eventData: Omit<TimelineEvent, "id">) => {
     if (!user?.id) {
       throw new Error("No user logged in");
+    }
+
+    // Vérifier la limite d'abonnement
+    if (!canCreateEvent(events.length)) {
+      const errorMessage = "Limite d'événements atteinte. Passez à Premium pour créer plus d'événements.";
+      setError(errorMessage);
+      return { data: null, error: errorMessage };
     }
 
     try {
