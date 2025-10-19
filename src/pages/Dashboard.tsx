@@ -172,10 +172,10 @@ const Dashboard = () => {
               <Button
                 variant="primary"
                 size="sm"
-                icon={Plus}
+                icon={Calendar}
                 onClick={() => navigate("/timeline")}
               >
-                <span className="hidden sm:inline">Ajouter un moment</span>
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
             </div>
           </div>
@@ -223,11 +223,13 @@ const Dashboard = () => {
             <Button
               variant="secondary"
               size="lg"
-              icon={Plus}
+              icon={events.length > 0 ? Calendar : Plus}
               onClick={() => navigate("/timeline")}
               className="bg-white text-blue-900 hover:bg-blue-50"
             >
-              Ajouter votre premier moment
+              {events.length > 0
+                ? "Voir votre timeline"
+                : "Ajouter votre premier moment"}
             </Button>
           </div>
         )}
