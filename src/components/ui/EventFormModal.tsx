@@ -10,6 +10,7 @@ interface EventFormProps {
   onSubmit: (data: EventFormData) => void;
   editEvent?: TimelineEvent | null; // Nouvel param pour l'édition
   mode?: "create" | "edit";
+  isSubmitting?: boolean;
 }
 
 export interface EventFormData {
@@ -29,6 +30,7 @@ const EventFormModal: React.FC<EventFormProps> = ({
   onSubmit,
   editEvent = null,
   mode = "create",
+  isSubmitting = false,
 }) => {
   const { categories } = useCategories();
 
@@ -361,16 +363,24 @@ const EventFormModal: React.FC<EventFormProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+              disabled={isSubmitting}
+              className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {mode === "edit" ? "Enregistrer" : "Créer l'événement"}
+              {isSubmitting
+                ? mode === "edit"
+                  ? "Enregistrement..."
+                  : "Création..."
+                : mode === "edit"
+                ? "Enregistrer"
+                : "Créer l'événement"}
             </button>
           </div>
         </div>

@@ -116,8 +116,8 @@ function SortableLane({ id, label, icon: Icon, color }: SortableLaneProps) {
 const Timeline = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { events, createEvent, updateEvent, deleteEvent } = useEvents();
-  const { categories, updateCategoriesOrder } = useCategories();
+  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent } = useEvents();
+  const { categories, loading: categoriesLoading, updateCategoriesOrder } = useCategories();
   const { canCreateEvent } = useSubscription();
 
   const [selectedModal, setSelectedModal] = useState<EventModalData>({
@@ -126,6 +126,7 @@ const Timeline = () => {
   });
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
@@ -208,6 +209,8 @@ const Timeline = () => {
   };
 
   const handleAddEvent = async (formData: EventFormData) => {
+    setIsSubmittingEvent(true);
+
     const newEvent: Omit<TimelineEvent, "id"> = {
       title: formData.title,
       description: formData.description,
@@ -222,6 +225,8 @@ const Timeline = () => {
     };
 
     const { error } = await createEvent(newEvent);
+    setIsSubmittingEvent(false);
+
     if (!error) {
       setIsFormOpen(false);
     }
@@ -229,6 +234,8 @@ const Timeline = () => {
 
   const handleEditEvent = async (formData: EventFormData) => {
     if (!editingEvent) return;
+
+    setIsSubmittingEvent(true);
 
     const updatedData: Partial<Omit<TimelineEvent, "id">> = {
       title: formData.title,
@@ -244,6 +251,8 @@ const Timeline = () => {
     };
 
     const { error } = await updateEvent(editingEvent.id, updatedData);
+    setIsSubmittingEvent(false);
+
     if (!error) {
       setEditingEvent(null);
       setSelectedModal({ event: null, isOpen: false });
@@ -361,6 +370,36 @@ const Timeline = () => {
     });
     return `${startStr} - ${endStr}`;
   };
+
+  const isLoading = eventsLoading || categoriesLoading;
+
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="h-screen flex flex-col bg-gray-50">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-gray-600 hover:text-blue-900 transition-colors"
+              title="Retour au dashboard"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg md:text-xl font-bold text-gray-900">
+              Ma Timeline
+            </h1>
+          </div>
+        </header>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Chargement de votre timeline...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -721,6 +760,7 @@ const Timeline = () => {
         onSubmit={editingEvent ? handleEditEvent : handleAddEvent}
         editEvent={editingEvent}
         mode={editingEvent ? "edit" : "create"}
+        isSubmitting={isSubmittingEvent}
       />
 
       {/* Delete Confirmation Dialog */}

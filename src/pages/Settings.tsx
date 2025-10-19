@@ -24,6 +24,7 @@ const Settings = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -108,6 +109,9 @@ const Settings = () => {
   };
 
   const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setErrorMessage("");
+
     try {
       const { error } = await supabase.auth.admin.deleteUser(
         profile?.id || ""
@@ -126,6 +130,7 @@ const Settings = () => {
           : "Erreur lors de la suppression du compte"
       );
       setShowDeleteConfirm(false);
+      setIsDeleting(false);
     }
   };
 
@@ -431,14 +436,16 @@ const Settings = () => {
                 variant="danger"
                 size="md"
                 onClick={handleDeleteAccount}
+                disabled={isDeleting}
                 fullWidth
               >
-                Oui, supprimer définitivement
+                {isDeleting ? "Suppression..." : "Oui, supprimer définitivement"}
               </Button>
               <Button
                 variant="outline"
                 size="md"
                 onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
                 fullWidth
               >
                 Annuler
