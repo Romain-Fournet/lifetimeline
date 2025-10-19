@@ -99,12 +99,16 @@ const Onboarding = () => {
         ? new Date().getFullYear() - new Date(data.birthdate).getFullYear()
         : null;
 
+      // 1. Mettre à jour le profil dans la table users
       await updateProfile({
         username: user?.email?.split("@")[0] || "user",
-        // On pourrait étendre le type Profile pour inclure ces champs
+        birthdate: data.birthdate,
+        location: data.location,
+        bio: data.bio,
+        onboarding_completed: true,
       });
 
-      // Pour l'instant, sauvegarder dans metadata du user Supabase
+      // Aussi sauvegarder dans les metadata Supabase pour cohérence
       await supabase.auth.updateUser({
         data: {
           birthdate: data.birthdate,

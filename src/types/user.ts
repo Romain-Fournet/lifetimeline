@@ -1,4 +1,4 @@
-import { SubscriptionTier } from './subscription';
+import type { SubscriptionTier } from './subscription';
 
 export interface User {
   id: string;
@@ -8,6 +8,10 @@ export interface User {
   subscription_tier: SubscriptionTier;
   subscription_activated_at: string | null;
   subscription_expires_at: string | null;
+  onboarding_completed: boolean;
+  birthdate: string | null;
+  location: string | null;
+  bio: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -15,4 +19,8 @@ export interface User {
 export interface UpdateProfileInput {
   username?: string;
   avatar_url?: string;
+  birthdate?: string;
+  location?: string;
+  bio?: string;
+  onboarding_completed?: boolean;
 }
