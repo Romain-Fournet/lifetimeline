@@ -20,11 +20,12 @@ import { useSubscription } from "../hooks/useSubscription";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { profile } = useProfile();
-  const { events } = useEvents();
+  const { events, loading: eventsLoading } = useEvents();
   const { getCategoryById } = useCategories();
   const { isPremium } = useSubscription();
 
   const userName = profile?.username || "Utilisateur";
+  const isLoading = eventsLoading;
 
   // Obtenir l'heure pour le message personnalisé
   const getGreeting = () => {
@@ -338,7 +339,12 @@ const Dashboard = () => {
         )}
 
         {/* Feed de moments récents */}
-        {recentMoments.length > 0 ? (
+        {isLoading ? (
+          <div className="bg-white rounded-2xl p-12 border border-gray-200 text-center">
+            <div className="inline-block w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">Chargement de vos moments...</p>
+          </div>
+        ) : recentMoments.length > 0 ? (
           <div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
