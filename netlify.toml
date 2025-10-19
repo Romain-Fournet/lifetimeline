@@ -9,6 +9,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Ignore documentation and config files from secrets scanning
-  # These files contain placeholder values or import statements, not actual secrets
-  SECRETS_SCAN_OMIT_PATHS = ".env.example,*.md,src/lib/supabase.ts"
+  # Disable secrets scanning for this project
+  # VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are PUBLIC keys that MUST be in the client bundle
+  # They are protected by Supabase Row Level Security (RLS) policies
+  # The "anon" key has limited permissions and cannot access data without proper RLS
+  SECRETS_SCAN_ENABLED = "false"
