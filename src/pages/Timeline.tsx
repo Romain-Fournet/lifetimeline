@@ -38,8 +38,10 @@ import { CSS } from "@dnd-kit/utilities";
 import EventFormModal from "../components/ui/EventFormModal";
 import type { EventFormData } from "../components/ui/EventFormModal";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { SubscriptionBanner } from "../components/ui/SubscriptionBanner";
 import { useEvents } from "../hooks/useEvents";
 import { useCategories } from "../hooks/useCategories";
+import { useSubscription } from "../hooks/useSubscription";
 
 export interface TimelineEvent {
   id: string;
@@ -116,6 +118,7 @@ const Timeline = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { events, createEvent, updateEvent, deleteEvent } = useEvents();
   const { categories, updateCategoriesOrder } = useCategories();
+  const { canCreateEvent } = useSubscription();
 
   const [selectedModal, setSelectedModal] = useState<EventModalData>({
     event: null,
@@ -406,17 +409,31 @@ const Timeline = () => {
             </button>
           </div>
           <button
-            className="bg-blue-900 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center space-x-2 shadow-sm"
+            className="bg-blue-900 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center space-x-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              setEditingEvent(null);
-              setIsFormOpen(true);
+              if (canCreateEvent(events.length)) {
+                setEditingEvent(null);
+                setIsFormOpen(true);
+              } else {
+                navigate("/upgrade");
+              }
             }}
+            disabled={!canCreateEvent(events.length)}
+            title={!canCreateEvent(events.length) ? "Limite atteinte - Passez à Premium" : "Ajouter un moment"}
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Ajouter</span>
           </button>
         </div>
       </header>
+
+      {/* Banner d'abonnement */}
+      <div className="px-4 md:px-6 py-3 bg-gray-50">
+        <SubscriptionBanner
+          currentCount={events.length}
+          limitType="events"
+        />
+      </div>
 
       {/* Timeline Container */}
       <DndContext
