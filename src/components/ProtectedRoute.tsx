@@ -22,7 +22,12 @@ export function ProtectedRoute({ children, pageName }: ProtectedRouteProps) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (!user) {
+  if (
+    !user &&
+    pageName !== "Login" &&
+    pageName !== "Signup" &&
+    pageName !== "Landing"
+  ) {
     return <Navigate to="/login" replace />;
   }
 
