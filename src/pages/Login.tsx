@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Calendar, Mail, Lock } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { Button } from "../components/ui/Button";
 
 export const Login = () => {
   const { logIn } = useAuth();
-
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,21 +29,23 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-teal-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 rounded-2xl mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-900 to-teal-600 rounded-2xl mb-4 shadow-lg">
             <Calendar className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bienvenue !</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Bienvenue !
+          </h1>
           <p className="text-gray-600">
             Connectez-vous à votre timeline personnelle
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
               {error}
@@ -64,7 +67,7 @@ export const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
                   placeholder="vous@exemple.com"
                   required
                 />
@@ -85,7 +88,7 @@ export const Login = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
                   placeholder="••••••••"
                   required
                 />
@@ -93,35 +96,37 @@ export const Login = () => {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-900 border-gray-300 rounded focus:ring-blue-900"
                 />
                 <span className="ml-2 text-gray-600">Se souvenir de moi</span>
               </label>
               <Link
                 to="/reset-password"
-                className="text-blue-600 hover:text-blue-700"
+                className="text-teal-600 hover:text-teal-700 font-medium"
               >
                 Mot de passe oublié ?
               </Link>
             </div>
 
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={loading}
-              className="w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              fullWidth
             >
               {loading ? "Connexion..." : "Se connecter"}
-            </button>
+            </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
             Pas encore de compte ?{" "}
             <Link
               to="/signup"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-teal-600 hover:text-teal-700 font-semibold"
             >
               Créer un compte
             </Link>
@@ -132,9 +137,10 @@ export const Login = () => {
         <div className="mt-8 text-center">
           <Link
             to="/"
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center space-x-1"
           >
-            ← Retour à l'accueil
+            <span>←</span>
+            <span>Retour à l'accueil</span>
           </Link>
         </div>
       </div>

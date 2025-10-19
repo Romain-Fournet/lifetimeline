@@ -12,7 +12,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
-import { SubscriptionBanner } from "../components/ui/SubscriptionBanner";
 import { useProfile } from "../hooks/useProfile";
 import { useEvents } from "../hooks/useEvents";
 import { useCategories } from "../hooks/useCategories";
@@ -184,14 +183,6 @@ const Dashboard = () => {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Banner d'abonnement pour les événements */}
-        <div className="mb-6">
-          <SubscriptionBanner
-            currentCount={events.length}
-            limitType="events"
-          />
-        </div>
-
         {/* Hero Section */}
         {todayMemory ? (
           <div className="mb-8 bg-gradient-to-br from-blue-900 via-blue-800 to-teal-600 rounded-2xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
