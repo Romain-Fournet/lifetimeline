@@ -23,10 +23,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Écoute des changements d'authentification
     const { data } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Si l'utilisateur vient de confirmer son email, nettoyer localStorage
+        if (event === "SIGNED_IN" && session?.user) {
+          localStorage.removeItem("pendingVerificationEmail");
+        }
       }
     );
 

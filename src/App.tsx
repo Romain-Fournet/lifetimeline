@@ -10,6 +10,8 @@ import Timeline from "./pages/Timeline";
 import Categories from "./pages/Categories";
 import Settings from "./pages/Settings";
 import Upgrade from "./pages/Upgrade";
+import VerifyEmail from "./pages/VerifyEmail";
+import Onboarding from "./pages/Onboarding";
 
 function App() {
   return (
@@ -38,6 +40,18 @@ function App() {
             element={
               <ProtectedRoute pageName={"Signup"}>
                 <Signup />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={<VerifyEmail />}
+          />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute pageName={"Onboarding"}>
+                <Onboarding />
               </ProtectedRoute>
             }
           />

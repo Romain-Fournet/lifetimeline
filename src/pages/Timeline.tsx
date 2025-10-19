@@ -374,13 +374,11 @@ const Timeline = () => {
   };
 
   const getEventWidth = (event: TimelineEvent) => {
-    if (!event.endDate) {
-      // Pour les événements en cours, utiliser 3 mois basés sur les jours réels
-      const avgDaysPerMonth = totalDays / totalMonths;
-      return avgDaysPerMonth * 3 * pixelsPerDay;
-    }
+    // Si pas de date de fin, utiliser aujourd'hui comme date de fin
+    const effectiveEndDate = event.endDate || new Date();
+
     // Calcul ultra précis basé sur les millisecondes exactes
-    const timeDiff = event.endDate.getTime() - event.startDate.getTime();
+    const timeDiff = effectiveEndDate.getTime() - event.startDate.getTime();
     const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
     const width = daysDiff * pixelsPerDay;
     // Largeur minimale pour que l'événement reste visible
@@ -655,8 +653,8 @@ const Timeline = () => {
                               {/* Fond avec couleur de la catégorie */}
                               <div className={`absolute inset-0 ${lane.lightColor} opacity-80`} />
 
-                              {/* Bordure avec couleur de la catégorie */}
-                              <div className={`absolute inset-0 ${lane.borderColor} border-2 rounded-lg pointer-events-none`} />
+                              {/* Bordure avec couleur de la catégorie - en pointillés si événement en cours */}
+                              <div className={`absolute inset-0 ${lane.borderColor} border-2 rounded-lg pointer-events-none ${!event.endDate ? 'border-dashed' : ''}`} />
 
                               {/* Contenu */}
                               <div className="relative h-full px-2 md:px-3 py-1 md:py-2 flex flex-col justify-center pl-3">

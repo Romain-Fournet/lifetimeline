@@ -37,7 +37,10 @@ export const Signup = () => {
       setError(error.message);
       return;
     } else {
-      navigate("/dashboard");
+      // Sauvegarder l'email pour la page de vérification
+      localStorage.setItem("pendingVerificationEmail", email);
+      // Rediriger vers la page de vérification email
+      navigate("/verify-email");
     }
   };
 
