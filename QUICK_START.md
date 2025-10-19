@@ -22,12 +22,14 @@ Votre application **LifeTimeline** est prête pour la production !
 5. Attendre création (~2 min)
 
 **Récupérer les clés** :
+
 - Settings > API
 - Copier **Project URL** : `https://xxxxx.supabase.co`
 - Copier **anon public key** : `eyJhbGci...`
 - **LES SAUVEGARDER DANS UN FICHIER SÉCURISÉ**
 
 **Exécuter SQL** :
+
 - SQL Editor > New query
 - Copier le contenu de `DEPLOYMENT.md` section "Configuration Supabase"
 - Exécuter les 4 blocs SQL dans l'ordre :
@@ -49,6 +51,7 @@ git push -u origin main
 ```
 
 **Si déjà sur GitHub** :
+
 ```bash
 # Juste s'assurer que tout est à jour
 git push origin main
@@ -66,10 +69,12 @@ git push origin main
 **AVANT de cliquer Deploy** :
 
 5. **Add environment variables** (CRUCIAL !) :
+
    ```
-   VITE_SUPABASE_URL = https://xxxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY = eyJhbGci...
+   VITE_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY
    ```
+
    (utiliser les valeurs de l'étape 1)
 
 6. Cliquer **Deploy site**
@@ -93,6 +98,7 @@ git push origin main
 **Ouvrir** : `https://votre-site.netlify.app`
 
 **Tests essentiels** :
+
 - [ ] Landing page s'affiche
 - [ ] Créer un compte (Signup)
 - [ ] Vérifier email → Confirmer compte
@@ -107,16 +113,19 @@ git push origin main
 - [ ] Tester sur mobile (responsive)
 
 **Console (F12)** :
+
 - Pas d'erreurs rouges ❌
 - Quelques warnings jaunes ⚠️ OK
 
 ### 6️⃣ Personnaliser (Optionnel)
 
 **Changer le nom du site** :
+
 - Netlify > Site settings > Change site name
 - `lifetimeline-app` → URL devient `lifetimeline-app.netlify.app`
 
 **Domaine personnalisé** :
+
 - Netlify > Domain management > Add custom domain
 - Suivre instructions DNS
 
@@ -133,13 +142,15 @@ Si vous rencontrez un problème, consulter :
 ### ❌ Build échoue sur Netlify
 
 **Solution** :
+
 1. Vérifier logs Netlify (Deploys > Cliquer sur deploy échoué)
-2. Vérifier que variables VITE_* sont bien configurées
+2. Vérifier que variables VITE\_\* sont bien configurées
 3. Tester `npm run build` localement
 
 ### ❌ Page blanche après déploiement
 
 **Solution** :
+
 1. Ouvrir console (F12)
 2. Si erreur "Missing Supabase" → Vérifier variables env
 3. Si erreur module → Redéployer avec clear cache
@@ -147,6 +158,7 @@ Si vous rencontrez un problème, consulter :
 ### ❌ Impossible de se connecter
 
 **Solution** :
+
 1. Vérifier Supabase > Auth > URL Configuration
 2. URL Netlify ajoutée dans Redirect URLs ?
 3. Vérifier email de confirmation (spam ?)
@@ -154,6 +166,7 @@ Si vous rencontrez un problème, consulter :
 ### ❌ Événements non affichés sur Timeline
 
 **Solution** :
+
 1. Console (F12) → Erreurs ?
 2. Vérifier RLS policies Supabase
 3. Vérifier que catégorie existe avant événement
@@ -194,11 +207,13 @@ Après 1 semaine en production :
 Roadmap suggérée :
 
 1. **Court terme** (1-2 semaines)
+
    - Analytics (Google Analytics/Plausible)
    - Monitoring erreurs (Sentry)
    - Optimiser images
 
 2. **Moyen terme** (1 mois)
+
    - Supabase Storage pour photos
    - Export PDF timeline
    - Dark mode

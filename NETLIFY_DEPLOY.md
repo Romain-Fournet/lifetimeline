@@ -3,12 +3,14 @@
 ## Étape 1 : Préparation du Repository
 
 ### 1.1 Vérifier que tout est commité
+
 ```bash
 git status
 # Devrait afficher : working tree clean
 ```
 
 ### 1.2 Pousser vers GitHub (si pas déjà fait)
+
 ```bash
 # Si le repository n'existe pas encore sur GitHub
 # Créer un nouveau repo sur github.com puis :
@@ -42,6 +44,7 @@ git push -u origin main
 2. Créer une nouvelle query
 3. Copier-coller le contenu de `DEPLOYMENT.md` section "Configuration Supabase"
 4. Exécuter dans cet ordre :
+
    - ✅ Création des tables
    - ✅ Row Level Security policies
    - ✅ Triggers updated_at
@@ -82,11 +85,9 @@ git push -u origin main
 
 ```
 Nom : VITE_SUPABASE_URL
-Valeur : https://xxxxx.supabase.co
 (coller l'URL de votre projet Supabase)
 
 Nom : VITE_SUPABASE_ANON_KEY
-Valeur : eyJhbGci...
 (coller la clé anon de votre projet Supabase)
 ```
 
@@ -96,6 +97,7 @@ Valeur : eyJhbGci...
 
 1. Cliquer sur **"Deploy lifetimeline"**
 2. Netlify va :
+
    - ✅ Cloner votre repository
    - ✅ Installer les dépendances (`npm install`)
    - ✅ Lancer le build (`npm run build`)
@@ -107,6 +109,7 @@ Valeur : eyJhbGci...
 ### 3.5 Vérification du déploiement
 
 Une fois terminé, vous verrez :
+
 - ✅ **Status** : Published
 - 🌐 **URL** : `https://random-name-123.netlify.app`
 
@@ -134,6 +137,7 @@ Cliquer sur l'URL pour tester !
 3. Choisir un nom : `lifetimeline-app` → `https://lifetimeline-app.netlify.app`
 
 Ou ajouter un domaine personnalisé :
+
 1. Cliquer sur **"Add custom domain"**
 2. Entrer votre domaine : `lifetimeline.com`
 3. Suivre les instructions DNS
@@ -142,6 +146,7 @@ Ou ajouter un domaine personnalisé :
 
 Netlify active automatiquement HTTPS avec Let's Encrypt.
 Vérifier dans **Site settings** > **Domain management** > **HTTPS** :
+
 - ✅ Certificate should say "Netlify's Certificate"
 - ✅ Force HTTPS enabled
 
@@ -180,6 +185,7 @@ Sur `https://votre-site.netlify.app`, tester :
 ### 5.2 Vérifier la console
 
 Ouvrir la console développeur (F12) :
+
 - ❌ Pas d'erreurs rouges
 - ⚠️ Warnings mineurs OK
 - ✅ Requêtes Supabase réussies (200)
@@ -205,6 +211,7 @@ git push origin main
 ### Branch deploys (optionnel)
 
 Netlify peut déployer chaque branche :
+
 1. **Site settings** > **Build & deploy** > **Deploy contexts**
 2. Activer **"Deploy previews"**
 3. Chaque PR aura sa propre URL de preview !
@@ -214,22 +221,26 @@ Netlify peut déployer chaque branche :
 ### Erreur : Build failed
 
 **Vérifier dans les logs Netlify** :
+
 1. Aller dans **Deploys** > Cliquer sur le deploy échoué
 2. Lire les logs
 
 **Solutions communes** :
-- ❌ `Missing environment variables` → Vérifier les variables VITE_*
+
+- ❌ `Missing environment variables` → Vérifier les variables VITE\_\*
 - ❌ `TypeScript errors` → Lancer `npm run build` localement
 - ❌ `Module not found` → Vérifier les imports
 
 ### Erreur : Page blanche après déploiement
 
 **Console navigateur affiche** :
+
 ```
 Failed to load module script
 ```
 
 **Solution** :
+
 - Vérifier que `base` est correct dans `vite.config.ts`
 - Devrait être : `base: '/'`
 
@@ -238,6 +249,7 @@ Failed to load module script
 **Les variables ne sont pas chargées**
 
 **Solutions** :
+
 1. Vérifier dans Netlify **Site settings** > **Environment variables**
 2. Les noms doivent être EXACTEMENT :
    - `VITE_SUPABASE_URL` (pas `SUPABASE_URL`)
@@ -249,6 +261,7 @@ Failed to load module script
 **Supabase redirect URLs non configurées**
 
 **Solution** :
+
 1. Supabase > **Authentication** > **URL Configuration**
 2. Ajouter URL Netlify dans **Redirect URLs**
 
@@ -257,6 +270,7 @@ Failed to load module script
 **Emails Supabase non configurés**
 
 **Solutions** :
+
 1. Vérifier spam/promotions
 2. Dans Supabase : **Authentication** > **Email Templates**
 3. Activer **"Confirm signup"**
@@ -320,6 +334,7 @@ URL de production : `https://votre-site.netlify.app`
 ---
 
 **Besoin d'aide ?**
+
 - Documentation Netlify : https://docs.netlify.com
 - Documentation Supabase : https://supabase.com/docs
 - Support : Ouvrir un ticket sur le repository GitHub
