@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Palette } from "lucide-react";
 import { useCategories } from "../hooks/useCategories";
 import { SubscriptionBanner } from "../components/ui/SubscriptionBanner";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
 import type { Category, CreateCategoryInput } from "../types/category";
 
-// Couleurs disponibles pour les catégories
 const AVAILABLE_COLORS = [
   { name: "Bleu", value: "bg-blue-500" },
   { name: "Vert", value: "bg-green-500" },
@@ -17,6 +18,8 @@ const AVAILABLE_COLORS = [
   { name: "Cyan", value: "bg-cyan-500" },
   { name: "Indigo", value: "bg-indigo-500" },
   { name: "Gris", value: "bg-gray-500" },
+  { name: "Teal", value: "bg-teal-500" },
+  { name: "Emerald", value: "bg-emerald-500" },
 ];
 
 export const Categories = () => {
@@ -34,22 +37,19 @@ export const Categories = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Formulaire de création
   const [newCategory, setNewCategory] = useState<CreateCategoryInput>({
     name: "",
     slug: "",
-    color: "bg-blue-500",
+    color: "bg-teal-500",
     icon: "",
     description: "",
   });
 
-  // Formulaire d'édition
   const [editForm, setEditForm] = useState<Partial<Category>>({});
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Générer le slug depuis le nom si pas fourni
     const slug =
       newCategory.slug || newCategory.name.toLowerCase().replace(/\s+/g, "_");
 
@@ -63,7 +63,7 @@ export const Categories = () => {
       setNewCategory({
         name: "",
         slug: "",
-        color: "bg-blue-500",
+        color: "bg-teal-500",
         icon: "",
         description: "",
       });
@@ -81,7 +81,6 @@ export const Categories = () => {
 
   const handleDelete = async (categoryId: string) => {
     await deleteCategory(categoryId);
-
     setDeletingId(null);
   };
 
@@ -98,37 +97,38 @@ export const Categories = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <button
                 onClick={() => navigate("/dashboard")}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="text-gray-600 hover:text-blue-900 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  Gérer les catégories
+                <h1 className="text-xl font-bold text-gray-900">
+                  Catégories
                 </h1>
-                <p className="text-gray-600 mt-1">
-                  Créez et personnalisez vos catégories d'événements
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Organisez vos moments de vie
                 </p>
               </div>
             </div>
-            <button
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Plus}
               onClick={() => setIsCreating(true)}
-              className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2"
             >
-              <Plus className="w-4 h-4" />
-              <span>Nouvelle catégorie</span>
-            </button>
+              <span className="hidden sm:inline">Nouvelle catégorie</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Banner d'abonnement */}
         <div className="mb-6">
           <SubscriptionBanner
@@ -146,10 +146,18 @@ export const Categories = () => {
 
         {/* Formulaire de création */}
         {isCreating && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Nouvelle catégorie
-            </h2>
+          <Card className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Nouvelle catégorie
+              </h2>
+              <button
+                onClick={() => setIsCreating(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -162,8 +170,8 @@ export const Categories = () => {
                     onChange={(e) =>
                       setNewCategory({ ...newCategory, name: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: Loisirs"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                    placeholder="Ex: Voyages, Travail, Famille..."
                     required
                   />
                 </div>
@@ -177,17 +185,18 @@ export const Categories = () => {
                     onChange={(e) =>
                       setNewCategory({ ...newCategory, slug: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: loisirs (auto-généré si vide)"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                    placeholder="Auto-généré si vide"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Couleur *
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+                  <Palette className="w-4 h-4" />
+                  <span>Couleur *</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-6 md:grid-cols-12 gap-2">
                   {AVAILABLE_COLORS.map((color) => (
                     <button
                       key={color.value}
@@ -195,30 +204,15 @@ export const Categories = () => {
                       onClick={() =>
                         setNewCategory({ ...newCategory, color: color.value })
                       }
-                      className={`w-12 h-12 rounded-lg ${color.value} ${
+                      className={`aspect-square rounded-lg ${color.value} ${
                         newCategory.color === color.value
-                          ? "ring-2 ring-offset-2 ring-gray-900"
-                          : "opacity-70 hover:opacity-100"
+                          ? "ring-4 ring-offset-2 ring-blue-900 scale-110"
+                          : "hover:scale-110"
                       } transition-all`}
                       title={color.name}
                     />
                   ))}
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Icône (nom Lucide)
-                </label>
-                <input
-                  type="text"
-                  value={newCategory.icon}
-                  onChange={(e) =>
-                    setNewCategory({ ...newCategory, icon: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Music"
-                />
               </div>
 
               <div>
@@ -233,173 +227,182 @@ export const Categories = () => {
                       description: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                  placeholder="Description de la catégorie..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                  rows={2}
+                  placeholder="Décrivez cette catégorie..."
                 />
               </div>
 
-              <div className="flex items-center space-x-3">
-                <button
-                  type="submit"
-                  className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Créer
-                </button>
-                <button
+              <div className="flex items-center space-x-3 pt-2">
+                <Button type="submit" variant="primary" size="md">
+                  Créer la catégorie
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="md"
                   onClick={() => setIsCreating(false)}
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   Annuler
-                </button>
+                </Button>
               </div>
             </form>
-          </div>
+          </Card>
         )}
 
         {/* Liste des catégories */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          {loading ? (
-            <div className="p-12 text-center text-gray-500">
-              Chargement des catégories...
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 mt-4">Chargement...</p>
+          </div>
+        ) : categories.length === 0 ? (
+          <Card className="text-center py-12">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Palette className="w-8 h-8 text-blue-900" />
             </div>
-          ) : categories.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              Aucune catégorie. Créez-en une pour commencer!
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="p-6 hover:bg-gray-50 transition-colors"
-                >
-                  {editingId === category.id ? (
-                    // Mode édition
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input
-                          type="text"
-                          value={editForm.name || ""}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm, name: e.target.value })
-                          }
-                          className="px-4 py-2 border border-gray-300 rounded-lg"
-                          placeholder="Nom"
-                        />
-                        <input
-                          type="text"
-                          value={editForm.slug || ""}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm, slug: e.target.value })
-                          }
-                          className="px-4 py-2 border border-gray-300 rounded-lg"
-                          placeholder="Slug"
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {AVAILABLE_COLORS.map((color) => (
-                          <button
-                            key={color.value}
-                            type="button"
-                            onClick={() =>
-                              setEditForm({ ...editForm, color: color.value })
-                            }
-                            className={`w-10 h-10 rounded-lg ${color.value} ${
-                              editForm.color === color.value
-                                ? "ring-2 ring-offset-2 ring-gray-900"
-                                : "opacity-70"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center space-x-3">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Aucune catégorie
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Créez votre première catégorie pour organiser vos moments
+            </p>
+            <Button
+              variant="primary"
+              size="md"
+              icon={Plus}
+              onClick={() => setIsCreating(true)}
+            >
+              Créer une catégorie
+            </Button>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {categories.map((category) => (
+              <Card
+                key={category.id}
+                hover={editingId !== category.id}
+                className={editingId === category.id ? "ring-2 ring-blue-900" : ""}
+              >
+                {editingId === category.id ? (
+                  // Mode édition
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={editForm.name || ""}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, name: e.target.value })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+                      placeholder="Nom"
+                    />
+                    <div className="grid grid-cols-6 gap-2">
+                      {AVAILABLE_COLORS.map((color) => (
                         <button
-                          onClick={() => handleEditSubmit(category.id)}
-                          className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center space-x-2"
-                        >
-                          <Save className="w-4 h-4" />
-                          <span>Sauvegarder</span>
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                        >
-                          Annuler
-                        </button>
-                      </div>
+                          key={color.value}
+                          type="button"
+                          onClick={() =>
+                            setEditForm({ ...editForm, color: color.value })
+                          }
+                          className={`aspect-square rounded-lg ${color.value} ${
+                            editForm.color === color.value
+                              ? "ring-2 ring-offset-2 ring-blue-900"
+                              : "opacity-70 hover:opacity-100"
+                          } transition-all`}
+                        />
+                      ))}
                     </div>
-                  ) : (
-                    // Mode affichage
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div
-                          className={`w-12 h-12 ${category.color} rounded-lg`}
-                        />
-                        <div>
-                          <h3 className="font-semibold text-gray-900">
-                            {category.name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            Slug: {category.slug}
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        icon={Save}
+                        onClick={() => handleEditSubmit(category.id)}
+                      >
+                        Sauvegarder
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={cancelEdit}
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  // Mode affichage
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div
+                        className={`w-12 h-12 ${category.color} rounded-xl flex-shrink-0`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900">
+                          {category.name}
+                        </h3>
+                        {category.description && (
+                          <p className="text-sm text-gray-600 truncate">
+                            {category.description}
                           </p>
-                          {category.description && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              {category.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => startEdit(category)}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Modifier"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingId(category.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">
+                          {category.slug}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => startEdit(category)}
+                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Modifier"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingId(category.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Dialog de confirmation de suppression */}
       {deletingId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Supprimer cette catégorie ?
             </h3>
             <p className="text-gray-600 mb-6">
-              Les événements associés ne seront pas supprimés, mais n'auront
-              plus de catégorie.
+              Cette action est irréversible. Les événements de cette catégorie
+              ne seront pas supprimés.
             </p>
             <div className="flex items-center space-x-3">
-              <button
+              <Button
+                variant="danger"
+                size="md"
                 onClick={() => handleDelete(deletingId)}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                fullWidth
               >
                 Supprimer
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
                 onClick={() => setDeletingId(null)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                fullWidth
               >
                 Annuler
-              </button>
+              </Button>
             </div>
           </div>
         </div>

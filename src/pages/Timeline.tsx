@@ -362,16 +362,16 @@ const Timeline = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-2 md:space-x-4">
           <button
             onClick={() => navigate("/dashboard")}
-            className="text-gray-600 hover:text-gray-900 transition-colors"
+            className="text-gray-600 hover:text-blue-900 transition-colors"
             title="Retour au dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg md:text-xl font-semibold text-gray-900">
+          <h1 className="text-lg md:text-xl font-bold text-gray-900">
             Ma Timeline
           </h1>
           <div className="text-xs md:text-sm text-gray-500">
@@ -387,11 +387,11 @@ const Timeline = () => {
               className="p-1.5 rounded hover:bg-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Dézoomer"
             >
-              <ZoomOut className="w-4 h-4 text-gray-700" />
+              <ZoomOut className="w-4 h-4 text-blue-900" />
             </button>
             <button
               onClick={handleResetZoom}
-              className="px-2 py-1 text-xs font-medium text-gray-700 hover:bg-white rounded transition-colors"
+              className="px-2 py-1 text-xs font-medium text-blue-900 hover:bg-white rounded transition-colors"
               title="Réinitialiser le zoom"
             >
               {Math.round(zoomLevel * 100)}%
@@ -402,11 +402,11 @@ const Timeline = () => {
               className="p-1.5 rounded hover:bg-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Zoomer"
             >
-              <ZoomIn className="w-4 h-4 text-gray-700" />
+              <ZoomIn className="w-4 h-4 text-blue-900" />
             </button>
           </div>
           <button
-            className="bg-gray-900 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2"
+            className="bg-blue-900 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center space-x-2 shadow-sm"
             onClick={() => {
               setEditingEvent(null);
               setIsFormOpen(true);

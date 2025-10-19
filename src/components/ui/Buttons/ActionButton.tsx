@@ -14,11 +14,11 @@ export const ActionButton = ({
   onClick,
 }: ActionButtonProps) => {
   const baseStyles =
-    "px-6 py-4 rounded-xl transition-all flex items-center justify-center space-x-2 font-medium";
+    "px-6 py-4 rounded-xl transition-all flex items-center justify-center space-x-2 font-medium shadow-sm hover:shadow-md";
   const variants = {
-    primary: "bg-gray-900 text-white hover:bg-gray-800",
+    primary: "bg-blue-900 text-white hover:bg-blue-800",
     secondary:
-      "bg-white text-gray-900 border-2 border-gray-200 hover:border-gray-300",
+      "bg-teal-500 text-white hover:bg-teal-600",
   };
 
   return (
