@@ -113,14 +113,45 @@ const Settings = () => {
     setErrorMessage("");
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(
-        profile?.id || ""
-      );
-
-      if (error) {
-        throw error;
+      if (!profile?.id) {
+        throw new Error("Profil non trouvé");
       }
 
+      // Supprimer toutes les données utilisateur
+      // 1. Supprimer les événements
+      const { error: eventsError } = await supabase
+        .from("events")
+        .delete()
+        .eq("user_id", profile.id);
+
+      if (eventsError) throw eventsError;
+
+      // 2. Supprimer les catégories
+      const { error: categoriesError } = await supabase
+        .from("categories")
+        .delete()
+        .eq("user_id", profile.id);
+
+      if (categoriesError) throw categoriesError;
+
+      // 3. Supprimer le profil utilisateur
+      const { error: userError } = await supabase
+        .from("users")
+        .delete()
+        .eq("id", profile.id);
+
+      if (userError) throw userError;
+
+      // 4. Supprimer le compte auth (utilise l'API user, pas admin)
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { deleted: true }
+      });
+
+      if (authError) {
+        console.warn("Impossible de marquer le compte auth comme supprimé:", authError);
+      }
+
+      // 5. Se déconnecter
       await signOut();
       navigate("/");
     } catch (error) {

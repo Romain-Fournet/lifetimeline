@@ -9,7 +9,7 @@ import type {
 import { SUBSCRIPTION_PLANS } from "../types/subscription";
 
 // Codes d'accès simulés (à remplacer par une vraie vérification backend en production)
-const VALID_UPGRADE_CODES = ["PREMIUM2025", "LIFETIMELINE-PRO", "UPGRADE-NOW"];
+const VALID_UPGRADE_CODES = ["PREMIUM2024", "PREMIUM2025", "LIFETIMELINE-PRO", "UPGRADE-NOW"];
 
 export function useSubscription() {
   const { user } = useAuth();

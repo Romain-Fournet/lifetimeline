@@ -328,11 +328,23 @@ const Timeline = () => {
     ...getColorVariants(cat.color),
   }));
 
+  // Gérer le cas où il n'y a pas d'événements
   const allDates = events.flatMap(
     (e: TimelineEvent) => [e.startDate, e.endDate].filter(Boolean) as Date[]
   );
-  const minDate = new Date(Math.min(...allDates.map((d: Date) => d.getTime())));
-  const maxDate = new Date(Math.max(...allDates.map((d: Date) => d.getTime())));
+
+  // Dates par défaut si aucun événement
+  const now = new Date();
+  const defaultMinDate = new Date(now.getFullYear(), 0, 1); // 1er janvier de l'année en cours
+  const defaultMaxDate = new Date(now.getFullYear(), 11, 31); // 31 décembre de l'année en cours
+
+  const minDate = allDates.length > 0
+    ? new Date(Math.min(...allDates.map((d: Date) => d.getTime())))
+    : defaultMinDate;
+  const maxDate = allDates.length > 0
+    ? new Date(Math.max(...allDates.map((d: Date) => d.getTime())))
+    : defaultMaxDate;
+
   minDate.setMonth(minDate.getMonth() - 1);
   maxDate.setMonth(maxDate.getMonth() + 1);
 
