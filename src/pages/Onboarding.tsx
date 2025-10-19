@@ -1,6 +1,5 @@
 // src/pages/Onboarding.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   User,
   Calendar,
@@ -96,7 +95,6 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const Onboarding = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { updateProfile } = useProfile();
   const { createCategory } = useCategories();
@@ -130,12 +128,28 @@ const Onboarding = () => {
   };
 
   const toggleCategory = (slug: string) => {
-    setData((prev) => ({
-      ...prev,
-      selectedCategories: prev.selectedCategories.includes(slug)
-        ? prev.selectedCategories.filter((s) => s !== slug)
-        : [...prev.selectedCategories, slug],
-    }));
+    setData((prev) => {
+      const isCurrentlySelected = prev.selectedCategories.includes(slug);
+
+      // Si on désélectionne, toujours autoriser
+      if (isCurrentlySelected) {
+        return {
+          ...prev,
+          selectedCategories: prev.selectedCategories.filter((s) => s !== slug),
+        };
+      }
+
+      // Si on sélectionne, vérifier la limite (4 pour le plan free)
+      if (prev.selectedCategories.length >= 4) {
+        // Ne pas ajouter si on a déjà atteint la limite
+        return prev;
+      }
+
+      return {
+        ...prev,
+        selectedCategories: [...prev.selectedCategories, slug],
+      };
+    });
   };
 
   const handleComplete = async () => {
@@ -168,55 +182,70 @@ const Onboarding = () => {
       });
 
       // 2. Créer les catégories sélectionnées
-      const categoryPromises = data.selectedCategories.map((slug, index) => {
-        const category = DEFAULT_CATEGORIES.find((c) => c.slug === slug);
-        if (!category) return Promise.resolve();
+      const categoryResults = await Promise.all(
+        data.selectedCategories.map(async (slug, index) => {
+          const category = DEFAULT_CATEGORIES.find((c) => c.slug === slug);
+          if (!category) return { success: false, slug };
 
-        return createCategory({
-          name: category.name,
-          slug: category.slug,
-          icon: category.slug,
-          color: category.color,
-          description: category.description,
-          display_order: index,
-        });
-      });
+          const result = await createCategory({
+            name: category.name,
+            slug: category.slug,
+            icon: category.slug,
+            color: category.color,
+            description: category.description,
+            display_order: index,
+          });
 
-      await Promise.all(categoryPromises);
+          return { success: !result.error, slug, error: result.error };
+        })
+      );
+
+      // Vérifier si des catégories n'ont pas pu être créées
+      const failedCategories = categoryResults.filter((r) => !r.success);
+      if (failedCategories.length > 0) {
+        console.error("Failed to create categories:", failedCategories);
+      }
 
       // 3. Créer le premier événement si renseigné
       if (data.firstMemory.title && data.firstMemory.date) {
         const firstCategory = data.selectedCategories[0];
-        const categoryData = DEFAULT_CATEGORIES.find(
-          (c) => c.slug === firstCategory
-        );
 
-        if (categoryData) {
-          // On va d'abord récupérer l'ID de la catégorie créée
-          const { data: categories } = await supabase
+        if (firstCategory) {
+          // Récupérer l'ID de la première catégorie créée
+          const { data: categories, error: categoryFetchError } = await supabase
             .from("categories")
             .select("id")
             .eq("user_id", user?.id)
             .eq("slug", firstCategory)
             .single();
 
-          if (categories) {
-            await supabase.from("events").insert({
+          if (categoryFetchError) {
+            console.error(
+              "Failed to fetch category for event:",
+              categoryFetchError
+            );
+          } else if (categories) {
+            // Créer l'événement
+            const { error: eventError } = await supabase.from("events").insert({
               user_id: user?.id,
               category_id: categories.id,
               title: data.firstMemory.title,
-              description: data.firstMemory.description,
-              start_date: new Date(data.firstMemory.date).toISOString(),
+              description: data.firstMemory.description || "",
+              start_date: data.firstMemory.date, // Format YYYY-MM-DD
               end_date: null,
             });
+
+            if (eventError) {
+              console.error("Failed to create first event:", eventError);
+            }
           }
         }
       }
-      // 4. Rediriger vers le dashboard
-      navigate("/dashboard");
+      // 4. Rediriger vers le dashboard avec un rechargement pour s'assurer que le profil est à jour
+      // On utilise window.location au lieu de navigate pour forcer un refresh complet
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Erreur lors de l'onboarding:", error);
-    } finally {
       setLoading(false);
     }
   };
@@ -475,14 +504,28 @@ const Onboarding = () => {
                 })}
               </div>
 
-              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-                <p className="text-teal-900 text-sm">
-                  ✨{" "}
+              <div
+                className={`border rounded-lg p-4 ${
+                  data.selectedCategories.length >= 4
+                    ? "bg-amber-50 border-amber-200"
+                    : "bg-teal-50 border-teal-200"
+                }`}
+              >
+                <p
+                  className={`text-sm ${
+                    data.selectedCategories.length >= 4
+                      ? "text-amber-900"
+                      : "text-teal-900"
+                  }`}
+                >
+                  {data.selectedCategories.length >= 4 ? "⚠️" : "✨"}{" "}
                   <strong>
-                    {data.selectedCategories.length} catégorie(s)
+                    {data.selectedCategories.length}/4 catégorie(s)
                     sélectionnée(s)
                   </strong>{" "}
-                  - Vous pourrez en créer d'autres plus tard !
+                  {data.selectedCategories.length >= 4
+                    ? "- Limite atteinte pour le plan gratuit. Passez à Premium pour plus de catégories !"
+                    : "- Vous pourrez en créer d'autres plus tard !"}
                 </p>
               </div>
             </div>

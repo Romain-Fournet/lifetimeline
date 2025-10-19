@@ -1,5 +1,5 @@
 // src/pages/Timeline.tsx
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -42,6 +42,7 @@ import { SubscriptionBanner } from "../components/ui/SubscriptionBanner";
 import { useEvents } from "../hooks/useEvents";
 import { useCategories } from "../hooks/useCategories";
 import { useSubscription } from "../hooks/useSubscription";
+import { useProfile } from "../hooks/useProfile";
 
 export interface TimelineEvent {
   id: string;
@@ -115,7 +116,10 @@ function SortableLane({ id, label, icon: Icon, color }: SortableLaneProps) {
 
 const Timeline = () => {
   const navigate = useNavigate();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const timelineScrollRef = useRef<HTMLDivElement>(null); // Zone des événements (scroll H + V)
+  const categoriesScrollRef = useRef<HTMLDivElement>(null); // Colonne catégories (scroll V sync)
+  const datesScrollRef = useRef<HTMLDivElement>(null); // Ligne des dates (scroll H sync)
+  const { profile } = useProfile();
   const {
     events,
     loading: eventsLoading,
@@ -328,33 +332,60 @@ const Timeline = () => {
     ...getColorVariants(cat.color),
   }));
 
-  // Gérer le cas où il n'y a pas d'événements
+  // Calculer les dates min et max de la timeline
+  const now = new Date();
+
+  // Date de début par défaut : date de naissance si disponible, sinon 1er janvier de l'année en cours
+  const defaultMinDate = profile?.birthdate
+    ? new Date(profile.birthdate)
+    : new Date(now.getFullYear(), 0, 1);
+
+  // Date de fin par défaut : aujourd'hui
+  const defaultMaxDate = now;
+
+  // Récupérer toutes les dates des événements
   const allDates = events.flatMap(
     (e: TimelineEvent) => [e.startDate, e.endDate].filter(Boolean) as Date[]
   );
 
-  // Dates par défaut si aucun événement
-  const now = new Date();
-  const defaultMinDate = new Date(now.getFullYear(), 0, 1); // 1er janvier de l'année en cours
-  const defaultMaxDate = new Date(now.getFullYear(), 11, 31); // 31 décembre de l'année en cours
+  // Calculer le min et max en tenant compte des événements
+  let minDate = defaultMinDate;
+  let maxDate = defaultMaxDate;
 
-  const minDate = allDates.length > 0
-    ? new Date(Math.min(...allDates.map((d: Date) => d.getTime())))
-    : defaultMinDate;
-  const maxDate = allDates.length > 0
-    ? new Date(Math.max(...allDates.map((d: Date) => d.getTime())))
-    : defaultMaxDate;
+  if (allDates.length > 0) {
+    const eventsMinDate = new Date(
+      Math.min(...allDates.map((d: Date) => d.getTime()))
+    );
+    const eventsMaxDate = new Date(
+      Math.max(...allDates.map((d: Date) => d.getTime()))
+    );
 
-  minDate.setMonth(minDate.getMonth() - 1);
-  maxDate.setMonth(maxDate.getMonth() + 1);
+    // Si un événement commence avant la date de naissance, étendre la timeline
+    if (eventsMinDate < minDate) {
+      minDate = eventsMinDate;
+    }
 
-  // Calculer le nombre total de jours réels entre minDate et maxDate
-  const totalDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+    // Si un événement se termine après aujourd'hui, étendre la timeline
+    if (eventsMaxDate > maxDate) {
+      maxDate = eventsMaxDate;
+    }
+  }
+
+  // Ajouter une marge d'un mois avant et après pour une meilleure visualisation
+  const finalMinDate = new Date(minDate);
+  finalMinDate.setMonth(finalMinDate.getMonth() - 1);
+
+  const finalMaxDate = new Date(maxDate);
+  finalMaxDate.setMonth(finalMaxDate.getMonth() + 1);
+
+  // Calculer le nombre total de jours réels entre finalMinDate et finalMaxDate
+  const totalDays =
+    (finalMaxDate.getTime() - finalMinDate.getTime()) / (1000 * 60 * 60 * 24);
 
   // Calculer le nombre de mois pour l'affichage (utilisé pour les marqueurs de temps)
   const totalMonths =
-    (maxDate.getFullYear() - minDate.getFullYear()) * 12 +
-    (maxDate.getMonth() - minDate.getMonth());
+    (finalMaxDate.getFullYear() - finalMinDate.getFullYear()) * 12 +
+    (finalMaxDate.getMonth() - finalMinDate.getMonth());
 
   // Base: 120 pixels par mois MOYEN (30.44 jours)
   const basePixelsPerDay = 120 / 30.44;
@@ -368,7 +399,7 @@ const Timeline = () => {
 
   const getPositionFromDate = (date: Date) => {
     // Calcul ultra précis basé sur les millisecondes exactes
-    const timeDiff = date.getTime() - minDate.getTime();
+    const timeDiff = date.getTime() - finalMinDate.getTime();
     const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
     return daysDiff * pixelsPerDay;
   };
@@ -385,10 +416,25 @@ const Timeline = () => {
     return Math.max(width, 40);
   };
 
+  // Synchroniser le scroll horizontal entre la timeline et les dates
+  const handleTimelineScroll = () => {
+    if (
+      timelineScrollRef.current &&
+      datesScrollRef.current &&
+      categoriesScrollRef.current
+    ) {
+      // Sync horizontal scroll avec les dates
+      datesScrollRef.current.scrollLeft = timelineScrollRef.current.scrollLeft;
+      // Sync vertical scroll avec les catégories
+      categoriesScrollRef.current.scrollTop =
+        timelineScrollRef.current.scrollTop;
+    }
+  };
+
   const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
+    if (timelineScrollRef.current) {
       const scrollAmount = 800;
-      scrollContainerRef.current.scrollBy({
+      timelineScrollRef.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
       });
@@ -409,6 +455,40 @@ const Timeline = () => {
   };
 
   const isLoading = eventsLoading || categoriesLoading;
+
+  // Auto-scroll vers le premier événement au chargement
+  useEffect(() => {
+    if (!isLoading && events.length > 0 && timelineScrollRef.current) {
+      // Trier les événements par date de début (du plus ancien au plus récent)
+      const sortedEvents = [...events].sort(
+        (a, b) => a.startDate.getTime() - b.startDate.getTime()
+      );
+      const firstEvent = sortedEvents[0];
+
+      // Calculer la position du premier événement (logique inline pour éviter les dépendances)
+      const timeDiff = firstEvent.startDate.getTime() - finalMinDate.getTime();
+      const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+      const eventPosition = daysDiff * pixelsPerDay;
+
+      // Attendre un court instant pour que le DOM soit prêt
+      setTimeout(() => {
+        if (timelineScrollRef.current) {
+          // Centrer le premier événement dans la vue
+          const containerWidth = timelineScrollRef.current.clientWidth;
+          const scrollPosition = Math.max(
+            0,
+            eventPosition - containerWidth / 2
+          );
+
+          timelineScrollRef.current.scrollTo({
+            left: scrollPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, events.length]); // Déclenché quand le chargement est terminé
 
   // Show loading state while data is being fetched
   if (isLoading) {
@@ -454,7 +534,7 @@ const Timeline = () => {
             Ma Timeline
           </h1>
           <div className="text-xs md:text-sm text-gray-500">
-            {minDate.getFullYear()} - {maxDate.getFullYear()}
+            {finalMinDate.getFullYear()} - {finalMaxDate.getFullYear()}
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -512,16 +592,84 @@ const Timeline = () => {
         <SubscriptionBanner currentCount={events.length} limitType="events" />
       </div>
 
-      {/* Timeline Container */}
+      {/* Timeline Container - Structure en grille */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 flex overflow-hidden">
-          {/* Lane Labels */}
-          <div className="w-16 md:w-40 bg-white border-r border-gray-200 flex-shrink-0">
-            <div className="h-12 md:h-16 border-b border-gray-200" />
+        <div className="flex-1 grid grid-cols-[auto_1fr] grid-rows-[auto_1fr] overflow-hidden">
+          {/* Coin supérieur gauche - vide mais nécessaire pour la grille */}
+          <div className="h-12 md:h-16 border-b border-r border-gray-200 bg-white" />
+
+          {/* Ligne des dates - Scroll horizontal synchronisé */}
+          <div
+            ref={datesScrollRef}
+            className="h-12 md:h-16 border-b border-gray-200 bg-white overflow-hidden"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <div
+              className="relative h-full"
+              style={{ width: `${timelineWidth}px` }}
+            >
+              {/* Time Markers */}
+              {Array.from({ length: totalMonths }, (_, i) => {
+                const date = new Date(finalMinDate);
+                date.setMonth(date.getMonth() + i);
+                const isYearStart = date.getMonth() === 0;
+                const isQuarterStart = date.getMonth() % 3 === 0;
+
+                // Adapter l'affichage selon le niveau de zoom
+                let shouldShowMonth = true;
+
+                if (zoomLevel < 0.5) {
+                  // Très dézoomé : afficher seulement les années et trimestres
+                  shouldShowMonth = isQuarterStart;
+                } else if (zoomLevel < 1) {
+                  // Dézoomé : afficher les années et tous les 2 mois
+                  shouldShowMonth = date.getMonth() % 2 === 0;
+                }
+
+                if (!shouldShowMonth) return null;
+
+                const shouldShowYear = isYearStart;
+
+                return (
+                  <div
+                    key={i}
+                    className="absolute top-0 h-full flex flex-col justify-center"
+                    style={{
+                      left: `${i * pixelsPerMonth}px`,
+                      width: `${pixelsPerMonth}px`,
+                    }}
+                  >
+                    {shouldShowYear && (
+                      <div className="text-xs md:text-sm font-semibold text-gray-900 px-2">
+                        {date.getFullYear()}
+                      </div>
+                    )}
+                    <div className="text-[10px] md:text-xs text-gray-500 px-2">
+                      {zoomLevel >= 2
+                        ? date.toLocaleDateString("fr-FR", {
+                            month: "long",
+                          })
+                        : date.toLocaleDateString("fr-FR", {
+                            month: "short",
+                          })}
+                    </div>
+                    <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-300" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Colonne des catégories - Scroll vertical synchronisé */}
+          <div
+            ref={categoriesScrollRef}
+            className="w-16 md:w-40 bg-white border-r border-gray-200 overflow-y-hidden overflow-x-hidden"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
             <SortableContext
               items={lanes.map((lane) => lane.id)}
               strategy={verticalListSortingStrategy}
@@ -538,158 +686,119 @@ const Timeline = () => {
             </SortableContext>
           </div>
 
-          {/* Timeline Scroll Area */}
-          <div className="flex-1 relative overflow-hidden">
+          {/* Zone des événements - Scroll horizontal + vertical (master) */}
+          <div
+            ref={timelineScrollRef}
+            className="overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 relative"
+            onScroll={handleTimelineScroll}
+          >
             <div
-              ref={scrollContainerRef}
-              className="h-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
+              className="relative"
+              style={{
+                width: `${timelineWidth}px`,
+                height: `${
+                  lanes.length * (window.innerWidth >= 768 ? 96 : 80)
+                }px`,
+              }}
             >
-              <div
-                className="relative"
-                style={{
-                  width: `${timelineWidth}px`,
-                  height: "100%",
-                  minHeight: "100%",
-                }}
-              >
-                {/* Time Markers */}
-                <div className="h-12 md:h-16 border-b border-gray-200 relative bg-white">
-                  {Array.from({ length: totalMonths }, (_, i) => {
-                    const date = new Date(minDate);
-                    date.setMonth(date.getMonth() + i);
-                    const isYearStart = date.getMonth() === 0;
-                    const isQuarterStart = date.getMonth() % 3 === 0;
+              {/* Scroll Buttons - Fixes et centrés sur la zone timeline */}
+              <div className="sticky left-4 z-30 pointer-events-none h-0 float-left" style={{ top: 'calc(50% - 1.25rem)' }}>
+                <button
+                  onClick={() => scroll("left")}
+                  className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center transition-all hover:scale-110 pointer-events-auto"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              </div>
+              <div className="sticky right-4 z-30 pointer-events-none h-0 float-right" style={{ top: 'calc(50% - 1.25rem)' }}>
+                <button
+                  onClick={() => scroll("right")}
+                  className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center transition-all hover:scale-110 pointer-events-auto"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              </div>
+              {/* Lanes with Events */}
+              {lanes.map((lane) => {
+                const laneEvents = events.filter(
+                  (e: TimelineEvent) => e.category_id === lane.id
+                );
 
-                    // Adapter l'affichage selon le niveau de zoom
-                    let shouldShowMonth = true;
-
-                    if (zoomLevel < 0.5) {
-                      // Très dézoomé : afficher seulement les années et trimestres
-                      shouldShowMonth = isQuarterStart;
-                    } else if (zoomLevel < 1) {
-                      // Dézoomé : afficher les années et tous les 2 mois
-                      shouldShowMonth = date.getMonth() % 2 === 0;
-                    }
-
-                    if (!shouldShowMonth) return null;
-
-                    const shouldShowYear = isYearStart;
-
-                    return (
+                return (
+                  <div
+                    key={lane.id}
+                    className="h-20 md:h-24 border-b border-gray-200 relative bg-white"
+                  >
+                    {/* Grid lines */}
+                    {Array.from({ length: totalMonths }, (_, i) => (
                       <div
                         key={i}
-                        className="absolute top-0 h-full flex flex-col justify-center"
-                        style={{
-                          left: `${i * pixelsPerMonth}px`,
-                          width: `${pixelsPerMonth}px`,
-                        }}
-                      >
-                        {shouldShowYear && (
-                          <div className="text-xs md:text-sm font-semibold text-gray-900 px-2">
-                            {date.getFullYear()}
-                          </div>
-                        )}
-                        <div className="text-[10px] md:text-xs text-gray-500 px-2">
-                          {zoomLevel >= 2
-                            ? date.toLocaleDateString("fr-FR", {
-                                month: "long",
-                              })
-                            : date.toLocaleDateString("fr-FR", {
-                                month: "short",
-                              })}
-                        </div>
-                        <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-300" />
-                      </div>
-                    );
-                  })}
-                </div>
+                        className="absolute top-0 bottom-0 w-px bg-gray-100"
+                        style={{ left: `${i * pixelsPerMonth}px` }}
+                      />
+                    ))}
 
-                {/* Lanes with Events */}
-                {lanes.map((lane) => {
-                  const laneEvents = events.filter(
-                    (e: TimelineEvent) => e.category_id === lane.id
-                  );
+                    {/* Events */}
+                    {laneEvents
+                      .filter(shouldShowEvent)
+                      .map((event: TimelineEvent) => {
+                        const left = getPositionFromDate(event.startDate);
+                        const width = getEventWidth(event);
+                        const isHovered = hoveredEvent === event.id;
 
-                  return (
-                    <div
-                      key={lane.id}
-                      className="h-20 md:h-24 border-b border-gray-200 relative bg-white"
-                    >
-                      {/* Grid lines */}
-                      {Array.from({ length: totalMonths }, (_, i) => (
-                        <div
-                          key={i}
-                          className="absolute top-0 bottom-0 w-px bg-gray-100"
-                          style={{ left: `${i * pixelsPerMonth}px` }}
-                        />
-                      ))}
-
-                      {/* Events */}
-                      {laneEvents
-                        .filter(shouldShowEvent)
-                        .map((event: TimelineEvent) => {
-                          const left = getPositionFromDate(event.startDate);
-                          const width = getEventWidth(event);
-                          const isHovered = hoveredEvent === event.id;
-
-                          return (
+                        return (
+                          <div
+                            key={event.id}
+                            className="absolute top-2 md:top-3 bottom-2 md:bottom-3 rounded-lg transition-all cursor-pointer hover:shadow-lg overflow-hidden"
+                            style={{
+                              left: `${left}px`,
+                              width: `${width}px`,
+                              zIndex: isHovered ? 20 : 10,
+                            }}
+                            onClick={() =>
+                              setSelectedModal({ event, isOpen: true })
+                            }
+                            onMouseEnter={() => setHoveredEvent(event.id)}
+                            onMouseLeave={() => setHoveredEvent(null)}
+                          >
+                            {/* Bande de couleur sur le côté gauche */}
                             <div
-                              key={event.id}
-                              className="absolute top-2 md:top-3 bottom-2 md:bottom-3 rounded-lg transition-all cursor-pointer hover:shadow-lg overflow-hidden"
-                              style={{
-                                left: `${left}px`,
-                                width: `${width}px`,
-                                zIndex: isHovered ? 20 : 10,
-                              }}
-                              onClick={() =>
-                                setSelectedModal({ event, isOpen: true })
-                              }
-                              onMouseEnter={() => setHoveredEvent(event.id)}
-                              onMouseLeave={() => setHoveredEvent(null)}
-                            >
-                              {/* Bande de couleur sur le côté gauche */}
-                              <div className={`absolute left-0 top-0 bottom-0 w-1 ${lane.color}`} />
+                              className={`absolute left-0 top-0 bottom-0 w-1 ${lane.color}`}
+                            />
 
-                              {/* Fond avec couleur de la catégorie */}
-                              <div className={`absolute inset-0 ${lane.lightColor} opacity-80`} />
+                            {/* Fond avec couleur de la catégorie */}
+                            <div
+                              className={`absolute inset-0 ${lane.lightColor} opacity-80`}
+                            />
 
-                              {/* Bordure avec couleur de la catégorie - en pointillés si événement en cours */}
-                              <div className={`absolute inset-0 ${lane.borderColor} border-2 rounded-lg pointer-events-none ${!event.endDate ? 'border-dashed' : ''}`} />
+                            {/* Bordure avec couleur de la catégorie - en pointillés si événement en cours */}
+                            <div
+                              className={`absolute inset-0 ${
+                                lane.borderColor
+                              } border-2 rounded-lg pointer-events-none ${
+                                !event.endDate ? "border-dashed" : ""
+                              }`}
+                            />
 
-                              {/* Contenu */}
-                              <div className="relative h-full px-2 md:px-3 py-1 md:py-2 flex flex-col justify-center pl-3">
-                                <div className="text-[10px] md:text-xs font-semibold text-gray-900 truncate">
-                                  {event.title}
-                                </div>
-                                <div className="hidden md:block text-xs text-gray-600 truncate">
-                                  {formatDateRange(
-                                    event.startDate,
-                                    event.endDate
-                                  )}
-                                </div>
+                            {/* Contenu */}
+                            <div className="relative h-full px-2 md:px-3 py-1 md:py-2 flex flex-col justify-center pl-3">
+                              <div className="text-[10px] md:text-xs font-semibold text-gray-900 truncate">
+                                {event.title}
+                              </div>
+                              <div className="hidden md:block text-xs text-gray-600 truncate">
+                                {formatDateRange(
+                                  event.startDate,
+                                  event.endDate
+                                )}
                               </div>
                             </div>
-                          );
-                        })}
-                    </div>
-                  );
-                })}
-              </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Scroll Buttons */}
-            <button
-              onClick={() => scroll("left")}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center"
-            >
-              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center"
-            >
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
           </div>
         </div>
       </DndContext>

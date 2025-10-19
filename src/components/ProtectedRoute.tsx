@@ -10,31 +10,37 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, pageName }: ProtectedRouteProps) {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
 
-  // Rediriger vers l'onboarding si le profil n'est pas complété
+  // Wait for profile to load before making routing decisions
+  if (user && profileLoading) {
+    return null; // or a loading spinner
+  }
+
+  // Redirect to onboarding if user is logged in but hasn't completed onboarding
   if (
     user &&
-    !user.user_metadata.onboarding_completed &&
+    profile &&
+    !profile.onboarding_completed &&
     pageName !== "Onboarding"
   ) {
-    console.log(user);
-    console.log(profile);
-    console.log(pageName);
-
-    console.log("Redirecting to onboarding");
     return <Navigate to="/onboarding" replace />;
   }
 
-  if (user && pageName == "Login") {
+  // Prevent users who completed onboarding from accessing onboarding page again
+  if (user && profile?.onboarding_completed && pageName === "Onboarding") {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (user && pageName == "Signup") {
+  if (user && pageName === "Login") {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (user && pageName == "Landing") {
+  if (user && pageName === "Signup") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (user && pageName === "Landing") {
     return <Navigate to="/dashboard" replace />;
   }
 
