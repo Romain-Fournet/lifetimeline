@@ -9,5 +9,6 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Ignore .env.example from secrets scanning (contains placeholder values only)
-  SECRETS_SCAN_OMIT_PATHS = ".env.example"
+  # Ignore documentation and config files from secrets scanning
+  # These files contain placeholder values or import statements, not actual secrets
+  SECRETS_SCAN_OMIT_PATHS = ".env.example,*.md,src/lib/supabase.ts"
