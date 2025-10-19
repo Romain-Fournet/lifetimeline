@@ -116,8 +116,18 @@ function SortableLane({ id, label, icon: Icon, color }: SortableLaneProps) {
 const Timeline = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent } = useEvents();
-  const { categories, loading: categoriesLoading, updateCategoriesOrder } = useCategories();
+  const {
+    events,
+    loading: eventsLoading,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  } = useEvents();
+  const {
+    categories,
+    loading: categoriesLoading,
+    updateCategoriesOrder,
+  } = useCategories();
   const { canCreateEvent } = useSubscription();
 
   const [selectedModal, setSelectedModal] = useState<EventModalData>({
@@ -326,26 +336,43 @@ const Timeline = () => {
   minDate.setMonth(minDate.getMonth() - 1);
   maxDate.setMonth(maxDate.getMonth() + 1);
 
+  // Calculer le nombre total de jours réels entre minDate et maxDate
+  const totalDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+
+  // Calculer le nombre de mois pour l'affichage (utilisé pour les marqueurs de temps)
   const totalMonths =
     (maxDate.getFullYear() - minDate.getFullYear()) * 12 +
     (maxDate.getMonth() - minDate.getMonth());
-  const basePixelsPerMonth = 120;
-  const pixelsPerMonth = basePixelsPerMonth * zoomLevel;
-  const timelineWidth = totalMonths * pixelsPerMonth;
+
+  // Base: 120 pixels par mois MOYEN (30.44 jours)
+  const basePixelsPerDay = 120 / 30.44;
+  const pixelsPerDay = basePixelsPerDay * zoomLevel;
+
+  // La timeline est basée sur le nombre RÉEL de jours
+  const timelineWidth = totalDays * pixelsPerDay;
+
+  // Calculer pixelsPerMonth pour l'affichage des marqueurs (approximatif, juste visuel)
+  const pixelsPerMonth = pixelsPerDay * 30.44;
 
   const getPositionFromDate = (date: Date) => {
-    const monthsDiff =
-      (date.getFullYear() - minDate.getFullYear()) * 12 +
-      (date.getMonth() - minDate.getMonth());
-    return monthsDiff * pixelsPerMonth;
+    // Calcul ultra précis basé sur les millisecondes exactes
+    const timeDiff = date.getTime() - minDate.getTime();
+    const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+    return daysDiff * pixelsPerDay;
   };
 
   const getEventWidth = (event: TimelineEvent) => {
-    if (!event.endDate) return pixelsPerMonth * 3;
-    const months =
-      (event.endDate.getFullYear() - event.startDate.getFullYear()) * 12 +
-      (event.endDate.getMonth() - event.startDate.getMonth());
-    return Math.max(months * pixelsPerMonth, 100);
+    if (!event.endDate) {
+      // Pour les événements en cours, utiliser 3 mois basés sur les jours réels
+      const avgDaysPerMonth = totalDays / totalMonths;
+      return avgDaysPerMonth * 3 * pixelsPerDay;
+    }
+    // Calcul ultra précis basé sur les millisecondes exactes
+    const timeDiff = event.endDate.getTime() - event.startDate.getTime();
+    const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+    const width = daysDiff * pixelsPerDay;
+    // Largeur minimale pour que l'événement reste visible
+    return Math.max(width, 40);
   };
 
   const scroll = (direction: "left" | "right") => {
@@ -458,7 +485,11 @@ const Timeline = () => {
               }
             }}
             disabled={!canCreateEvent(events.length)}
-            title={!canCreateEvent(events.length) ? "Limite atteinte - Passez à Premium" : "Ajouter un moment"}
+            title={
+              !canCreateEvent(events.length)
+                ? "Limite atteinte - Passez à Premium"
+                : "Ajouter un moment"
+            }
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Ajouter</span>
@@ -468,10 +499,7 @@ const Timeline = () => {
 
       {/* Banner d'abonnement */}
       <div className="px-4 md:px-6 py-3 bg-gray-50">
-        <SubscriptionBanner
-          currentCount={events.length}
-          limitType="events"
-        />
+        <SubscriptionBanner currentCount={events.length} limitType="events" />
       </div>
 
       {/* Timeline Container */}
@@ -502,140 +530,158 @@ const Timeline = () => {
 
           {/* Timeline Scroll Area */}
           <div className="flex-1 relative overflow-hidden">
-          <div
-            ref={scrollContainerRef}
-            className="h-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
-          >
             <div
-              className="relative"
-              style={{
-                width: `${timelineWidth}px`,
-                height: "100%",
-                minHeight: "100%",
-              }}
+              ref={scrollContainerRef}
+              className="h-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"
             >
-              {/* Time Markers */}
-              <div className="h-12 md:h-16 border-b border-gray-200 relative bg-white">
-                {Array.from({ length: totalMonths }, (_, i) => {
-                  const date = new Date(minDate);
-                  date.setMonth(date.getMonth() + i);
-                  const isYearStart = date.getMonth() === 0;
-                  const isQuarterStart = date.getMonth() % 3 === 0;
+              <div
+                className="relative"
+                style={{
+                  width: `${timelineWidth}px`,
+                  height: "100%",
+                  minHeight: "100%",
+                }}
+              >
+                {/* Time Markers */}
+                <div className="h-12 md:h-16 border-b border-gray-200 relative bg-white">
+                  {Array.from({ length: totalMonths }, (_, i) => {
+                    const date = new Date(minDate);
+                    date.setMonth(date.getMonth() + i);
+                    const isYearStart = date.getMonth() === 0;
+                    const isQuarterStart = date.getMonth() % 3 === 0;
 
-                  // Adapter l'affichage selon le niveau de zoom
-                  let shouldShowMonth = true;
+                    // Adapter l'affichage selon le niveau de zoom
+                    let shouldShowMonth = true;
 
-                  if (zoomLevel < 0.5) {
-                    // Très dézoomé : afficher seulement les années et trimestres
-                    shouldShowMonth = isQuarterStart;
-                  } else if (zoomLevel < 1) {
-                    // Dézoomé : afficher les années et tous les 2 mois
-                    shouldShowMonth = date.getMonth() % 2 === 0;
-                  }
+                    if (zoomLevel < 0.5) {
+                      // Très dézoomé : afficher seulement les années et trimestres
+                      shouldShowMonth = isQuarterStart;
+                    } else if (zoomLevel < 1) {
+                      // Dézoomé : afficher les années et tous les 2 mois
+                      shouldShowMonth = date.getMonth() % 2 === 0;
+                    }
 
-                  if (!shouldShowMonth) return null;
+                    if (!shouldShowMonth) return null;
 
-                  const shouldShowYear = isYearStart;
+                    const shouldShowYear = isYearStart;
+
+                    return (
+                      <div
+                        key={i}
+                        className="absolute top-0 h-full flex flex-col justify-center"
+                        style={{
+                          left: `${i * pixelsPerMonth}px`,
+                          width: `${pixelsPerMonth}px`,
+                        }}
+                      >
+                        {shouldShowYear && (
+                          <div className="text-xs md:text-sm font-semibold text-gray-900 px-2">
+                            {date.getFullYear()}
+                          </div>
+                        )}
+                        <div className="text-[10px] md:text-xs text-gray-500 px-2">
+                          {zoomLevel >= 2
+                            ? date.toLocaleDateString("fr-FR", {
+                                month: "long",
+                              })
+                            : date.toLocaleDateString("fr-FR", {
+                                month: "short",
+                              })}
+                        </div>
+                        <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-300" />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Lanes with Events */}
+                {lanes.map((lane) => {
+                  const laneEvents = events.filter(
+                    (e: TimelineEvent) => e.category_id === lane.id
+                  );
 
                   return (
                     <div
-                      key={i}
-                      className="absolute top-0 h-full flex flex-col justify-center"
-                      style={{
-                        left: `${i * pixelsPerMonth}px`,
-                        width: `${pixelsPerMonth}px`,
-                      }}
+                      key={lane.id}
+                      className="h-20 md:h-24 border-b border-gray-200 relative bg-white"
                     >
-                      {shouldShowYear && (
-                        <div className="text-xs md:text-sm font-semibold text-gray-900 px-2">
-                          {date.getFullYear()}
-                        </div>
-                      )}
-                      <div className="text-[10px] md:text-xs text-gray-500 px-2">
-                        {zoomLevel >= 2
-                          ? date.toLocaleDateString("fr-FR", { month: "long" })
-                          : date.toLocaleDateString("fr-FR", { month: "short" })
-                        }
-                      </div>
-                      <div className="absolute bottom-0 left-0 w-px h-2 bg-gray-300" />
+                      {/* Grid lines */}
+                      {Array.from({ length: totalMonths }, (_, i) => (
+                        <div
+                          key={i}
+                          className="absolute top-0 bottom-0 w-px bg-gray-100"
+                          style={{ left: `${i * pixelsPerMonth}px` }}
+                        />
+                      ))}
+
+                      {/* Events */}
+                      {laneEvents
+                        .filter(shouldShowEvent)
+                        .map((event: TimelineEvent) => {
+                          const left = getPositionFromDate(event.startDate);
+                          const width = getEventWidth(event);
+                          const isHovered = hoveredEvent === event.id;
+
+                          return (
+                            <div
+                              key={event.id}
+                              className="absolute top-2 md:top-3 bottom-2 md:bottom-3 rounded-lg transition-all cursor-pointer hover:shadow-lg overflow-hidden"
+                              style={{
+                                left: `${left}px`,
+                                width: `${width}px`,
+                                zIndex: isHovered ? 20 : 10,
+                              }}
+                              onClick={() =>
+                                setSelectedModal({ event, isOpen: true })
+                              }
+                              onMouseEnter={() => setHoveredEvent(event.id)}
+                              onMouseLeave={() => setHoveredEvent(null)}
+                            >
+                              {/* Bande de couleur sur le côté gauche */}
+                              <div className={`absolute left-0 top-0 bottom-0 w-1 ${lane.color}`} />
+
+                              {/* Fond avec couleur de la catégorie */}
+                              <div className={`absolute inset-0 ${lane.lightColor} opacity-80`} />
+
+                              {/* Bordure avec couleur de la catégorie */}
+                              <div className={`absolute inset-0 ${lane.borderColor} border-2 rounded-lg pointer-events-none`} />
+
+                              {/* Contenu */}
+                              <div className="relative h-full px-2 md:px-3 py-1 md:py-2 flex flex-col justify-center pl-3">
+                                <div className="text-[10px] md:text-xs font-semibold text-gray-900 truncate">
+                                  {event.title}
+                                </div>
+                                <div className="hidden md:block text-xs text-gray-600 truncate">
+                                  {formatDateRange(
+                                    event.startDate,
+                                    event.endDate
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                     </div>
                   );
                 })}
               </div>
-
-              {/* Lanes with Events */}
-              {lanes.map((lane) => {
-                const laneEvents = events.filter(
-                  (e: TimelineEvent) => e.category_id === lane.id
-                );
-
-                return (
-                  <div
-                    key={lane.id}
-                    className="h-20 md:h-24 border-b border-gray-200 relative bg-white"
-                  >
-                    {/* Grid lines */}
-                    {Array.from({ length: totalMonths }, (_, i) => (
-                      <div
-                        key={i}
-                        className="absolute top-0 bottom-0 w-px bg-gray-100"
-                        style={{ left: `${i * pixelsPerMonth}px` }}
-                      />
-                    ))}
-
-                    {/* Events */}
-                    {laneEvents.filter(shouldShowEvent).map((event: TimelineEvent) => {
-                      const left = getPositionFromDate(event.startDate);
-                      const width = getEventWidth(event);
-                      const isHovered = hoveredEvent === event.id;
-
-                      return (
-                        <div
-                          key={event.id}
-                          className={`absolute top-2 md:top-3 bottom-2 md:bottom-3 rounded-lg transition-all cursor-pointer ${lane.lightColor} ${lane.borderColor} border-2 hover:shadow-lg`}
-                          style={{
-                            left: `${left}px`,
-                            width: `${width}px`,
-                            zIndex: isHovered ? 20 : 10,
-                          }}
-                          onClick={() =>
-                            setSelectedModal({ event, isOpen: true })
-                          }
-                          onMouseEnter={() => setHoveredEvent(event.id)}
-                          onMouseLeave={() => setHoveredEvent(null)}
-                        >
-                          <div className="h-full px-2 md:px-3 py-1 md:py-2 flex flex-col justify-center">
-                            <div className="text-[10px] md:text-xs font-semibold text-gray-900 truncate">
-                              {event.title}
-                            </div>
-                            <div className="hidden md:block text-xs text-gray-600 truncate">
-                              {formatDateRange(event.startDate, event.endDate)}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
             </div>
-          </div>
 
-          {/* Scroll Buttons */}
-          <button
-            onClick={() => scroll("left")}
-            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center"
-          >
-            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center"
-          >
-            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
+            {/* Scroll Buttons */}
+            <button
+              onClick={() => scroll("left")}
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center"
+            >
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 bg-white border border-gray-300 rounded-full shadow-lg hover:bg-gray-50 flex items-center justify-center"
+            >
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+          </div>
         </div>
-      </div>
       </DndContext>
 
       {/* Event Detail Modal */}

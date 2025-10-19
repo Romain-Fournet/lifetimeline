@@ -30,8 +30,7 @@ const Dashboard = () => {
   // Obtenir l'heure pour le message personnalisé
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Bon matin";
-    if (hour < 18) return "Bon après-midi";
+    if (hour < 18) return "Bonjour";
     return "Bonsoir";
   };
 
@@ -176,7 +175,7 @@ const Dashboard = () => {
                 icon={Calendar}
                 onClick={() => navigate("/timeline")}
               >
-                <span className="hidden sm:inline">Dashboard</span>
+                <span className="hidden sm:inline">Timeline</span>
               </Button>
             </div>
           </div>
@@ -229,7 +228,7 @@ const Dashboard = () => {
               className="bg-white text-blue-900 hover:bg-blue-50"
             >
               {events.length > 0
-                ? "Voir votre timeline"
+                ? "Voir ma timeline"
                 : "Ajouter votre premier moment"}
             </Button>
           </div>

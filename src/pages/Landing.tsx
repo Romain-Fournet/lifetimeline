@@ -74,7 +74,7 @@ const Landing = () => {
     },
     {
       name: "Premium",
-      price: "9€",
+      price: "1.99€",
       period: "par mois",
       features: [
         "Moments illimités",
@@ -96,9 +96,6 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-900 to-teal-600 rounded-lg flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-white" />
-              </div>
               <span className="text-xl font-bold text-gray-900">
                 LifeTimeline
               </span>
@@ -142,7 +139,12 @@ const Landing = () => {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/signup">
-                <Button variant="primary" size="lg" icon={ArrowRight} iconPosition="right">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon={ArrowRight}
+                  iconPosition="right"
+                >
                   Commencer gratuitement
                 </Button>
               </Link>

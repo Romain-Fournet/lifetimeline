@@ -17,15 +17,36 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute pageName={"Landing"}>
+                <Landing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <ProtectedRoute pageName={"Login"}>
+                <Login />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <ProtectedRoute pageName={"Signup"}>
+                <Signup />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected routes */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute pageName={"Dashboard"}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -33,7 +54,7 @@ function App() {
           <Route
             path="/timeline"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute pageName={"Timeline"}>
                 <Timeline />
               </ProtectedRoute>
             }
@@ -41,7 +62,7 @@ function App() {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute pageName={"Settings"}>
                 <Settings />
               </ProtectedRoute>
             }
@@ -49,7 +70,7 @@ function App() {
           <Route
             path="/categories"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute pageName={"Categories"}>
                 <Categories />
               </ProtectedRoute>
             }
@@ -57,7 +78,7 @@ function App() {
           <Route
             path="/upgrade"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute pageName={"Upgrade"}>
                 <Upgrade />
               </ProtectedRoute>
             }
