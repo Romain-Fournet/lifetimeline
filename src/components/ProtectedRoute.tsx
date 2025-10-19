@@ -15,9 +15,14 @@ export function ProtectedRoute({ children, pageName }: ProtectedRouteProps) {
   // Rediriger vers l'onboarding si le profil n'est pas complété
   if (
     user &&
-    profile?.onboarding_completed === false &&
+    !user.user_metadata.onboarding_completed &&
     pageName !== "Onboarding"
   ) {
+    console.log(user);
+    console.log(profile);
+    console.log(pageName);
+
+    console.log("Redirecting to onboarding");
     return <Navigate to="/onboarding" replace />;
   }
 

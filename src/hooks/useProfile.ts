@@ -63,7 +63,7 @@ export function useProfile() {
       if (updateError) {
         throw updateError;
       }
-
+      console.log("Update profile" + data);
       setProfile(data);
       return { data, error: null };
     } catch (err) {

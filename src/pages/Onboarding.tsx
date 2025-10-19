@@ -37,14 +37,62 @@ interface OnboardingData {
 }
 
 const DEFAULT_CATEGORIES = [
-  { slug: "work", name: "Travail & Carrière", icon: Briefcase, color: "bg-blue-500", description: "Jobs, promotions, projets professionnels" },
-  { slug: "education", name: "Études & Formation", icon: GraduationCap, color: "bg-purple-500", description: "Diplômes, cours, apprentissages" },
-  { slug: "housing", name: "Logement", icon: Home, color: "bg-green-500", description: "Déménagements, achats immobiliers" },
-  { slug: "travel", name: "Voyages", icon: Plane, color: "bg-teal-500", description: "Vacances, découvertes, aventures" },
-  { slug: "relationship", name: "Relations", icon: HeartHandshake, color: "bg-pink-500", description: "Rencontres, mariages, amitiés" },
-  { slug: "health", name: "Santé & Bien-être", icon: Activity, color: "bg-red-500", description: "Sport, santé, développement personnel" },
-  { slug: "hobbies", name: "Loisirs & Passions", icon: Palette, color: "bg-orange-500", description: "Hobbies, projets créatifs" },
-  { slug: "finance", name: "Finances", icon: Wallet, color: "bg-emerald-500", description: "Investissements, achats importants" },
+  {
+    slug: "work",
+    name: "Travail & Carrière",
+    icon: Briefcase,
+    color: "bg-blue-500",
+    description: "Jobs, promotions, projets professionnels",
+  },
+  {
+    slug: "education",
+    name: "Études & Formation",
+    icon: GraduationCap,
+    color: "bg-purple-500",
+    description: "Diplômes, cours, apprentissages",
+  },
+  {
+    slug: "housing",
+    name: "Logement",
+    icon: Home,
+    color: "bg-green-500",
+    description: "Déménagements, achats immobiliers",
+  },
+  {
+    slug: "travel",
+    name: "Voyages",
+    icon: Plane,
+    color: "bg-teal-500",
+    description: "Vacances, découvertes, aventures",
+  },
+  {
+    slug: "relationship",
+    name: "Relations",
+    icon: HeartHandshake,
+    color: "bg-pink-500",
+    description: "Rencontres, mariages, amitiés",
+  },
+  {
+    slug: "health",
+    name: "Santé & Bien-être",
+    icon: Activity,
+    color: "bg-red-500",
+    description: "Sport, santé, développement personnel",
+  },
+  {
+    slug: "hobbies",
+    name: "Loisirs & Passions",
+    icon: Palette,
+    color: "bg-orange-500",
+    description: "Hobbies, projets créatifs",
+  },
+  {
+    slug: "finance",
+    name: "Finances",
+    icon: Wallet,
+    color: "bg-emerald-500",
+    description: "Investissements, achats importants",
+  },
 ];
 
 const Onboarding = () => {
@@ -139,7 +187,9 @@ const Onboarding = () => {
       // 3. Créer le premier événement si renseigné
       if (data.firstMemory.title && data.firstMemory.date) {
         const firstCategory = data.selectedCategories[0];
-        const categoryData = DEFAULT_CATEGORIES.find((c) => c.slug === firstCategory);
+        const categoryData = DEFAULT_CATEGORIES.find(
+          (c) => c.slug === firstCategory
+        );
 
         if (categoryData) {
           // On va d'abord récupérer l'ID de la catégorie créée
@@ -162,7 +212,6 @@ const Onboarding = () => {
           }
         }
       }
-
       // 4. Rediriger vers le dashboard
       navigate("/dashboard");
     } catch (error) {
@@ -207,7 +256,8 @@ const Onboarding = () => {
                     Parlez-nous de vous
                   </h2>
                   <p className="text-gray-600">
-                    Ces informations nous aident à personnaliser votre expérience
+                    Ces informations nous aident à personnaliser votre
+                    expérience
                   </p>
                 </div>
               </div>
@@ -222,7 +272,9 @@ const Onboarding = () => {
                   <input
                     type="date"
                     value={data.birthdate}
-                    onChange={(e) => setData({ ...data, birthdate: e.target.value })}
+                    onChange={(e) =>
+                      setData({ ...data, birthdate: e.target.value })
+                    }
                     max={new Date().toISOString().split("T")[0]}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
                   />
@@ -240,7 +292,9 @@ const Onboarding = () => {
                   <input
                     type="text"
                     value={data.location}
-                    onChange={(e) => setData({ ...data, location: e.target.value })}
+                    onChange={(e) =>
+                      setData({ ...data, location: e.target.value })
+                    }
                     placeholder="Paris, France"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
                   />
@@ -297,7 +351,10 @@ const Onboarding = () => {
                     onChange={(e) =>
                       setData({
                         ...data,
-                        firstMemory: { ...data.firstMemory, title: e.target.value },
+                        firstMemory: {
+                          ...data.firstMemory,
+                          title: e.target.value,
+                        },
                       })
                     }
                     placeholder="Ex: Mon premier jour d'école, Rencontre avec mon conjoint..."
@@ -316,7 +373,10 @@ const Onboarding = () => {
                     onChange={(e) =>
                       setData({
                         ...data,
-                        firstMemory: { ...data.firstMemory, date: e.target.value },
+                        firstMemory: {
+                          ...data.firstMemory,
+                          date: e.target.value,
+                        },
                       })
                     }
                     max={new Date().toISOString().split("T")[0]}
@@ -348,7 +408,8 @@ const Onboarding = () => {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-blue-900 text-sm">
-                    💡 <strong>Astuce :</strong> Vous pourrez ajouter plus de détails et de photos plus tard !
+                    💡 <strong>Astuce :</strong> Vous pourrez ajouter plus de
+                    détails et de photos plus tard !
                   </p>
                 </div>
               </div>
@@ -375,7 +436,9 @@ const Onboarding = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {DEFAULT_CATEGORIES.map((category) => {
                   const Icon = category.icon;
-                  const isSelected = data.selectedCategories.includes(category.slug);
+                  const isSelected = data.selectedCategories.includes(
+                    category.slug
+                  );
 
                   return (
                     <button
@@ -414,7 +477,12 @@ const Onboarding = () => {
 
               <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
                 <p className="text-teal-900 text-sm">
-                  ✨ <strong>{data.selectedCategories.length} catégorie(s) sélectionnée(s)</strong> - Vous pourrez en créer d'autres plus tard !
+                  ✨{" "}
+                  <strong>
+                    {data.selectedCategories.length} catégorie(s)
+                    sélectionnée(s)
+                  </strong>{" "}
+                  - Vous pourrez en créer d'autres plus tard !
                 </p>
               </div>
             </div>
@@ -431,7 +499,11 @@ const Onboarding = () => {
             )}
 
             {step < totalSteps ? (
-              <Button variant="primary" onClick={handleNext} icon={ChevronRight}>
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                icon={ChevronRight}
+              >
                 Suivant
               </Button>
             ) : (
